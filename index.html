@@ -5,9 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CatLenDar</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 <body>
-  <div id="app">
+
+  <!-- LOGIN SCREEN -->
+  <div id="login-screen">
+    <div id="login-card">
+      <div class="cat-face">
+        <div class="cat-ear cat-ear-left"><div class="cat-ear-inner"></div></div>
+        <div class="cat-ear cat-ear-right"><div class="cat-ear-inner"></div></div>
+        <div class="cat-eyes">
+          <div class="cat-eye"><div class="cat-pupil"></div></div>
+          <div class="cat-eye"><div class="cat-pupil"></div></div>
+        </div>
+        <div class="cat-nose"></div>
+        <div class="cat-smile"></div>
+        <div class="cat-whiskers">
+          <span class="whisker wl1"></span>
+          <span class="whisker wl2"></span>
+          <span class="whisker wr1"></span>
+          <span class="whisker wr2"></span>
+        </div>
+      </div>
+      <div id="login-brand">
+        <span class="brand-cat">Cat</span><span class="brand-len">Len</span><span class="brand-dar">Dar</span>
+      </div>
+      <p id="login-subtitle">Your personal calendar, secured.</p>
+      <button id="btn-signin" class="btn-primary">Sign In</button>
+    </div>
+  </div>
+
+  <div id="app" class="hidden">
 
     <!-- HEADER -->
     <header id="app-header">
@@ -25,6 +54,11 @@
       <div id="view-toggle">
         <button id="btn-view-week" class="view-btn active">Week</button>
         <button id="btn-view-month" class="view-btn">Month</button>
+      </div>
+
+      <div id="user-info">
+        <span id="user-email"></span>
+        <button id="btn-logout" class="logout-btn">Sign out</button>
       </div>
     </header>
 

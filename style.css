@@ -170,6 +170,83 @@ input, textarea {
   color: var(--color-text-primary);
 }
 
+/* ── Login Screen ── */
+#login-screen {
+  position: fixed;
+  inset: 0;
+  background: #111111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+}
+
+#login-screen.hidden {
+  display: none;
+}
+
+#login-card {
+  text-align: center;
+  padding: 48px 36px;
+  animation: cat-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+#login-brand {
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  margin-bottom: 8px;
+}
+
+#login-brand .brand-cat { color: #e53935; }
+#login-brand .brand-len { color: #ffffff; }
+#login-brand .brand-dar { color: #4a90e2; }
+
+#login-subtitle {
+  font-size: 14px;
+  color: #888888;
+  margin-bottom: 28px;
+}
+
+#login-card .btn-primary {
+  width: 100%;
+  padding: 12px;
+  font-size: 15px;
+}
+
+/* ── User Info (header) ── */
+#user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+#user-email {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.logout-btn {
+  padding: 5px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.logout-btn:hover {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
 /* ── Grid Wrapper (week view) ── */
 #grid-wrapper {
   display: flex;
