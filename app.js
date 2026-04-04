@@ -1,14 +1,20 @@
 /* ── Constants ── */
-const STORAGE_KEY = 'calendarEvents';
-const SLOT_HEIGHT = 48;
-const SLOTS_PER_DAY = 48;
-const COLOR_PALETTE = ['#4A90E2', '#E67E22', '#27AE60', '#8E44AD', '#E53935', '#16A085'];
-const DAYS_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const STORAGE_KEY    = 'calendarEvents';
+const GREETING_KEY   = 'calendarGreetingDate';
+const SLOT_HEIGHT    = 48;
+const SLOTS_PER_DAY  = 48;
+const COLOR_PALETTE  = ['#4A90E2', '#E67E22', '#27AE60', '#8E44AD', '#E53935', '#16A085'];
+const DAYS_SHORT     = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DAYS_FULL      = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const MONTHS_SHORT   = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTHS_FULL    = ['January', 'February', 'March', 'April', 'May', 'June',
+                        'July', 'August', 'September', 'October', 'November', 'December'];
 
 /* ── State ── */
 let state = {
+  view: 'week',           // 'week' | 'month'
   weekOffset: 0,
+  monthOffset: 0,
   events: [],
   editingId: null,
   selectedColor: COLOR_PALETTE[0]
@@ -19,9 +25,7 @@ function loadEvents() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
 
 function saveEvents() {
@@ -62,14 +66,23 @@ function getEventsForWeek(weekStart) {
   return state.events.filter(e => dates.includes(e.date));
 }
 
+function getEventsForMonth(year, month) {
+  const prefix = `${year}-${String(month + 1).padStart(2, '0')}`;
+  return state.events.filter(e => e.date.startsWith(prefix));
+}
+
 /* ── Date Utilities ── */
 function getWeekStart(offset) {
   const now = new Date();
-  const day = now.getDay(); // 0 = Sunday
   const sunday = new Date(now);
-  sunday.setDate(now.getDate() - day + offset * 7);
+  sunday.setDate(now.getDate() - now.getDay() + offset * 7);
   sunday.setHours(0, 0, 0, 0);
   return sunday;
+}
+
+function getMonthDate(offset) {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth() + offset, 1);
 }
 
 function formatDate(date) {
@@ -86,10 +99,12 @@ function formatDisplayDate(date) {
 function formatWeekLabel(weekStart) {
   const weekEnd = new Date(weekStart);
   weekEnd.setDate(weekStart.getDate() + 6);
-  const startStr = formatDisplayDate(weekStart);
-  const endStr = formatDisplayDate(weekEnd);
-  const year = weekEnd.getFullYear();
-  return `${startStr} – ${endStr}, ${year}`;
+  return `${formatDisplayDate(weekStart)} – ${formatDisplayDate(weekEnd)}, ${weekEnd.getFullYear()}`;
+}
+
+function formatMonthLabel(offset) {
+  const d = getMonthDate(offset);
+  return `${MONTHS_FULL[d.getMonth()]} ${d.getFullYear()}`;
 }
 
 function isToday(dateStr) {
@@ -122,13 +137,26 @@ function formatTimeDisplay(timeStr) {
 /* ── Rendering ── */
 function renderAll() {
   renderHeader();
-  renderDayHeaders();
-  renderGrid();
+  if (state.view === 'week') {
+    document.getElementById('grid-wrapper').classList.remove('hidden');
+    document.getElementById('month-grid').classList.add('hidden');
+    renderDayHeaders();
+    renderGrid();
+  } else {
+    document.getElementById('grid-wrapper').classList.add('hidden');
+    document.getElementById('month-grid').classList.remove('hidden');
+    renderMonth();
+  }
+  // Sync view toggle button states
+  document.getElementById('btn-view-week').classList.toggle('active', state.view === 'week');
+  document.getElementById('btn-view-month').classList.toggle('active', state.view === 'month');
 }
 
 function renderHeader() {
-  const weekStart = getWeekStart(state.weekOffset);
-  document.getElementById('week-label').textContent = formatWeekLabel(weekStart);
+  document.getElementById('week-label').textContent =
+    state.view === 'week'
+      ? formatWeekLabel(getWeekStart(state.weekOffset))
+      : formatMonthLabel(state.monthOffset);
 }
 
 function renderTimeGutter() {
@@ -138,7 +166,6 @@ function renderTimeGutter() {
     const minutes = i * 30;
     const label = document.createElement('div');
     label.className = 'time-label';
-    // Only show text on the hour (every other slot)
     if (minutes % 60 === 0) {
       label.textContent = formatTimeDisplay(`${String(minutes / 60).padStart(2, '0')}:00`);
     }
@@ -154,6 +181,7 @@ function renderDayHeaders() {
     const date = new Date(weekStart);
     date.setDate(date.getDate() + i);
     const dateStr = formatDate(date);
+
     const div = document.createElement('div');
     div.className = 'day-header';
     div.dataset.date = dateStr;
@@ -189,7 +217,6 @@ function renderGrid() {
     column.dataset.date = dateStr;
     column.dataset.today = isToday(dateStr) ? 'true' : 'false';
 
-    // Render 48 time slots
     for (let s = 0; s < SLOTS_PER_DAY; s++) {
       const minutes = s * 30;
       const hh = String(Math.floor(minutes / 60)).padStart(2, '0');
@@ -198,36 +225,31 @@ function renderGrid() {
       slot.className = 'time-slot';
       slot.dataset.date = dateStr;
       slot.dataset.time = `${hh}:${mm}`;
-      if (minutes % 60 === 0) {
-        slot.dataset.hourStart = 'true';
-      }
+      if (minutes % 60 === 0) slot.dataset.hourStart = 'true';
       column.appendChild(slot);
     }
 
-    // Render events for this day on top
     renderEventsForDay(column, dateStr, weekEvents);
     container.appendChild(column);
   }
 }
 
 function renderEventsForDay(columnEl, dateStr, events) {
-  const dayEvents = events.filter(e => e.date === dateStr);
-  dayEvents.forEach(event => {
-    const block = createEventBlock(event);
-    columnEl.appendChild(block);
+  events.filter(e => e.date === dateStr).forEach(event => {
+    columnEl.appendChild(createEventBlock(event));
   });
 }
 
 function createEventBlock(event) {
-  const startMins = timeToMinutes(event.startTime);
-  const endMins = timeToMinutes(event.endTime);
-  const durationMins = Math.max(endMins - startMins, 30); // min 30-min height
+  const startMins   = timeToMinutes(event.startTime);
+  const endMins     = timeToMinutes(event.endTime);
+  const durationMins = Math.max(endMins - startMins, 30);
 
   const block = document.createElement('div');
   block.className = 'event-block';
   block.dataset.id = event.id;
   block.style.background = event.color;
-  block.style.top = `${minutesToTop(startMins)}px`;
+  block.style.top    = `${minutesToTop(startMins)}px`;
   block.style.height = `${(durationMins / 30) * SLOT_HEIGHT}px`;
 
   const titleEl = document.createElement('span');
@@ -240,13 +262,90 @@ function createEventBlock(event) {
 
   block.appendChild(titleEl);
   block.appendChild(timeEl);
-
-  block.addEventListener('click', (e) => {
-    e.stopPropagation();
-    openEditModal(event.id);
-  });
-
+  block.addEventListener('click', (e) => { e.stopPropagation(); openEditModal(event.id); });
   return block;
+}
+
+/* ── Month View Rendering ── */
+function renderMonth() {
+  const container = document.getElementById('month-grid');
+  container.innerHTML = '';
+
+  const monthDate  = getMonthDate(state.monthOffset);
+  const year       = monthDate.getFullYear();
+  const month      = monthDate.getMonth();
+  const firstDay   = new Date(year, month, 1).getDay(); // 0=Sun
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  // Day name headers
+  const namesRow = document.createElement('div');
+  namesRow.className = 'month-day-names';
+  DAYS_SHORT.forEach(name => {
+    const el = document.createElement('div');
+    el.className = 'month-day-name';
+    el.textContent = name;
+    namesRow.appendChild(el);
+  });
+  container.appendChild(namesRow);
+
+  // Grid cells
+  const cells = document.createElement('div');
+  cells.className = 'month-cells';
+
+  // Total cells: fill to complete rows of 7
+  const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+
+  for (let i = 0; i < totalCells; i++) {
+    const dayNum = i - firstDay + 1;
+    const cell = document.createElement('div');
+    cell.className = 'month-day-cell';
+
+    let cellDate;
+    if (dayNum < 1) {
+      // Days from previous month
+      cellDate = new Date(year, month, dayNum);
+      cell.classList.add('other-month');
+    } else if (dayNum > daysInMonth) {
+      // Days from next month
+      cellDate = new Date(year, month, dayNum);
+      cell.classList.add('other-month');
+    } else {
+      cellDate = new Date(year, month, dayNum);
+    }
+
+    const dateStr = formatDate(cellDate);
+    cell.dataset.date = dateStr;
+    if (isToday(dateStr)) cell.classList.add('today');
+
+    // Day number
+    const numEl = document.createElement('div');
+    numEl.className = 'month-day-num';
+    numEl.textContent = cellDate.getDate();
+    cell.appendChild(numEl);
+
+    // Events for this day
+    const dayEvents = state.events.filter(e => e.date === dateStr);
+    const maxVisible = 3;
+    dayEvents.slice(0, maxVisible).forEach(event => {
+      const chip = document.createElement('div');
+      chip.className = 'month-event-chip';
+      chip.dataset.id = event.id;
+      chip.style.background = event.color;
+      chip.textContent = event.title;
+      cell.appendChild(chip);
+    });
+
+    if (dayEvents.length > maxVisible) {
+      const more = document.createElement('div');
+      more.className = 'month-more-chip';
+      more.textContent = `+${dayEvents.length - maxVisible} more`;
+      cell.appendChild(more);
+    }
+
+    cells.appendChild(cell);
+  }
+
+  container.appendChild(cells);
 }
 
 /* ── Modal Logic ── */
@@ -303,14 +402,13 @@ function setSelectedColor(hex) {
 /* ── Validation ── */
 function validateForm() {
   const title = document.getElementById('input-title').value.trim();
-  const date = document.getElementById('input-date').value;
+  const date  = document.getElementById('input-date').value;
   const start = document.getElementById('input-start').value;
-  const end = document.getElementById('input-end').value;
-
+  const end   = document.getElementById('input-end').value;
   const errors = {};
 
   if (!title) errors.title = 'Title is required';
-  if (!date) errors.date = 'Date is required';
+  if (!date)  errors.date  = 'Date is required';
   if (!start) errors.start = 'Start time is required';
   if (!end) {
     errors.end = 'End time is required';
@@ -322,10 +420,9 @@ function validateForm() {
 }
 
 function displayErrors(errors) {
-  const fields = ['title', 'date', 'start', 'end'];
-  fields.forEach(field => {
+  ['title', 'date', 'start', 'end'].forEach(field => {
     const errorEl = document.getElementById(`error-${field}`);
-    const inputId = field === 'start' ? 'input-start' : field === 'end' ? 'input-end' : `input-${field}`;
+    const inputId = (field === 'start' || field === 'end') ? `input-${field}` : `input-${field}`;
     const inputEl = document.getElementById(inputId);
     if (errors[field]) {
       errorEl.textContent = errors[field];
@@ -341,24 +438,20 @@ function clearErrors() {
   ['title', 'date', 'start', 'end'].forEach(field => {
     const errorEl = document.getElementById(`error-${field}`);
     if (errorEl) errorEl.textContent = '';
-    const inputId = field === 'start' ? 'input-start' : field === 'end' ? 'input-end' : `input-${field}`;
-    const inputEl = document.getElementById(inputId);
+    const inputEl = document.getElementById(`input-${field}`);
     if (inputEl) inputEl.removeAttribute('aria-invalid');
   });
 }
 
 /* ── Scroll Utilities ── */
 function scrollToCurrentHour() {
-  const container = document.getElementById('slots-container');
-  container.scrollTop = minutesToTop(8 * 60);
+  document.getElementById('slots-container').scrollTop = minutesToTop(8 * 60);
 }
 
 function syncGutterScroll() {
   const container = document.getElementById('slots-container');
-  const gutter = document.getElementById('time-gutter');
-  container.addEventListener('scroll', () => {
-    gutter.scrollTop = container.scrollTop;
-  });
+  const gutter    = document.getElementById('time-gutter');
+  container.addEventListener('scroll', () => { gutter.scrollTop = container.scrollTop; });
 }
 
 /* ── Color Picker Init ── */
@@ -376,91 +469,14 @@ function initColorPicker() {
   });
 }
 
-/* ── Event Handlers ── */
-function attachEventListeners() {
-  // Week navigation
-  document.getElementById('btn-prev-week').addEventListener('click', () => {
-    state.weekOffset--;
-    renderAll();
-  });
-  document.getElementById('btn-next-week').addEventListener('click', () => {
-    state.weekOffset++;
-    renderAll();
-  });
-  document.getElementById('btn-today').addEventListener('click', () => {
-    state.weekOffset = 0;
-    renderAll();
-    scrollToCurrentHour();
-  });
-
-  // Slot click (event delegation)
-  document.getElementById('slots-container').addEventListener('click', (e) => {
-    const slot = e.target.closest('.time-slot');
-    if (!slot) return;
-    openNewModal(slot.dataset.date, slot.dataset.time);
-  });
-
-  // Modal close buttons
-  document.getElementById('modal-close').addEventListener('click', closeModal);
-  document.getElementById('modal-overlay').addEventListener('click', (e) => {
-    if (e.target === document.getElementById('modal-overlay')) closeModal();
-  });
-
-  // Escape key
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !document.getElementById('modal-overlay').classList.contains('hidden')) {
-      closeModal();
-    }
-  });
-
-  // Form submit
-  document.getElementById('event-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const { valid, errors } = validateForm();
-    if (!valid) {
-      displayErrors(errors);
-      return;
-    }
-    const fields = {
-      title: document.getElementById('input-title').value.trim(),
-      date: document.getElementById('input-date').value,
-      startTime: document.getElementById('input-start').value,
-      endTime: document.getElementById('input-end').value,
-      description: document.getElementById('input-desc').value.trim(),
-      color: state.selectedColor
-    };
-    if (state.editingId) {
-      updateEvent(state.editingId, fields);
-    } else {
-      createEvent(fields);
-    }
-    closeModal();
-    renderAll();
-  });
-
-  // Delete button
-  document.getElementById('btn-delete-event').addEventListener('click', () => {
-    if (!confirm('Delete this event?')) return;
-    deleteEvent(state.editingId);
-    closeModal();
-    renderAll();
-  });
-}
-
-/* ── Daily Greeting ── */
-const GREETING_KEY = 'calendarGreetingDate';
-
+/* ── Daily Greeting (black cat) ── */
 function maybeShowGreeting() {
   const today = formatDate(new Date());
   if (localStorage.getItem(GREETING_KEY) === today) return;
 
-  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const now = new Date();
-  const dayName = days[now.getDay()];
-  const dateLabel = formatDisplayDate(now);
-
   document.getElementById('greeting-message').textContent =
-    `It's ${dayName}, ${dateLabel}. Want to add something to your agenda today?`;
+    `It's ${DAYS_FULL[now.getDay()]}, ${formatDisplayDate(now)}. Want to add something to your agenda today?`;
 
   document.getElementById('greeting-overlay').classList.remove('hidden');
   localStorage.setItem(GREETING_KEY, today);
@@ -486,6 +502,137 @@ function attachGreetingListeners() {
   });
 }
 
+/* ── Week Navigation Cat (gray cat) ── */
+function showWeekCat() {
+  const weekStart = getWeekStart(state.weekOffset);
+  document.getElementById('week-cat-message').textContent =
+    `${formatWeekLabel(weekStart)}. Anything you want to plan for this week?`;
+  document.getElementById('week-cat-overlay').classList.remove('hidden');
+}
+
+function closeWeekCat() {
+  document.getElementById('week-cat-overlay').classList.add('hidden');
+}
+
+function attachWeekCatListeners() {
+  document.getElementById('btn-week-cat-dismiss').addEventListener('click', closeWeekCat);
+
+  document.getElementById('btn-week-cat-add').addEventListener('click', () => {
+    closeWeekCat();
+    // Open modal for Monday of the displayed week at 09:00
+    const weekStart = getWeekStart(state.weekOffset);
+    const monday = new Date(weekStart);
+    monday.setDate(monday.getDate() + 1); // Monday = Sunday + 1
+    openNewModal(formatDate(monday), '09:00');
+  });
+
+  document.getElementById('week-cat-overlay').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('week-cat-overlay')) closeWeekCat();
+  });
+}
+
+/* ── Event Handlers ── */
+function attachEventListeners() {
+  // Week / month navigation
+  document.getElementById('btn-prev-week').addEventListener('click', () => {
+    if (state.view === 'week') {
+      state.weekOffset--;
+      renderAll();
+      showWeekCat();
+    } else {
+      state.monthOffset--;
+      renderAll();
+    }
+  });
+
+  document.getElementById('btn-next-week').addEventListener('click', () => {
+    if (state.view === 'week') {
+      state.weekOffset++;
+      renderAll();
+      showWeekCat();
+    } else {
+      state.monthOffset++;
+      renderAll();
+    }
+  });
+
+  document.getElementById('btn-today').addEventListener('click', () => {
+    state.weekOffset  = 0;
+    state.monthOffset = 0;
+    renderAll();
+    if (state.view === 'week') scrollToCurrentHour();
+  });
+
+  // View toggle
+  document.getElementById('btn-view-week').addEventListener('click', () => {
+    if (state.view === 'week') return;
+    state.view = 'week';
+    renderAll();
+    scrollToCurrentHour();
+  });
+
+  document.getElementById('btn-view-month').addEventListener('click', () => {
+    if (state.view === 'month') return;
+    state.view = 'month';
+    renderAll();
+  });
+
+  // Week view: slot click
+  document.getElementById('slots-container').addEventListener('click', (e) => {
+    const slot = e.target.closest('.time-slot');
+    if (!slot) return;
+    openNewModal(slot.dataset.date, slot.dataset.time);
+  });
+
+  // Month view: cell and chip clicks
+  document.getElementById('month-grid').addEventListener('click', (e) => {
+    const chip = e.target.closest('.month-event-chip');
+    if (chip) { openEditModal(chip.dataset.id); return; }
+    const cell = e.target.closest('.month-day-cell');
+    if (cell && cell.dataset.date) openNewModal(cell.dataset.date, '09:00');
+  });
+
+  // Modal close
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  document.getElementById('modal-overlay').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('modal-overlay')) closeModal();
+  });
+
+  // Escape key closes any open overlay
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (!document.getElementById('modal-overlay').classList.contains('hidden'))   closeModal();
+    if (!document.getElementById('greeting-overlay').classList.contains('hidden')) closeGreeting();
+    if (!document.getElementById('week-cat-overlay').classList.contains('hidden')) closeWeekCat();
+  });
+
+  // Form submit
+  document.getElementById('event-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const { valid, errors } = validateForm();
+    if (!valid) { displayErrors(errors); return; }
+    const fields = {
+      title:       document.getElementById('input-title').value.trim(),
+      date:        document.getElementById('input-date').value,
+      startTime:   document.getElementById('input-start').value,
+      endTime:     document.getElementById('input-end').value,
+      description: document.getElementById('input-desc').value.trim(),
+      color:       state.selectedColor
+    };
+    state.editingId ? updateEvent(state.editingId, fields) : createEvent(fields);
+    closeModal();
+    renderAll();
+  });
+
+  // Delete
+  document.getElementById('btn-delete-event').addEventListener('click', () => {
+    if (!confirm('Delete this event?')) return;
+    deleteEvent(state.editingId);
+    closeModal();
+    renderAll();
+  });
+}
+
 /* ── Init ── */
 function init() {
   state.events = loadEvents();
@@ -496,6 +643,7 @@ function init() {
   syncGutterScroll();
   attachEventListeners();
   attachGreetingListeners();
+  attachWeekCatListeners();
   maybeShowGreeting();
 }
 

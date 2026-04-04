@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calendar</title>
+  <title>CatLenDar</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,27 +11,36 @@
 
     <!-- HEADER -->
     <header id="app-header">
-      <button id="btn-prev-week" class="nav-btn" aria-label="Previous week">&#8249;</button>
-      <h1 id="week-label"></h1>
-      <button id="btn-next-week" class="nav-btn" aria-label="Next week">&#8250;</button>
-      <button id="btn-today" class="today-btn">Today</button>
+      <div id="brand">
+        <span class="brand-cat">Cat</span><span class="brand-len">Len</span><span class="brand-dar">Dar</span>
+      </div>
+
+      <div id="nav-controls">
+        <button id="btn-prev-week" class="nav-btn" aria-label="Previous">&#8249;</button>
+        <h1 id="week-label"></h1>
+        <button id="btn-next-week" class="nav-btn" aria-label="Next">&#8250;</button>
+        <button id="btn-today" class="today-btn">Today</button>
+      </div>
+
+      <div id="view-toggle">
+        <button id="btn-view-week" class="view-btn active">Week</button>
+        <button id="btn-view-month" class="view-btn">Month</button>
+      </div>
     </header>
 
-    <!-- GRID WRAPPER -->
+    <!-- WEEK VIEW -->
     <div id="grid-wrapper">
-
-      <!-- Time gutter -->
       <div id="time-gutter"></div>
-
-      <!-- Day grid -->
       <div id="day-grid">
         <div id="day-headers"></div>
         <div id="slots-container"></div>
       </div>
-
     </div>
 
-    <!-- MODAL -->
+    <!-- MONTH VIEW -->
+    <div id="month-grid" class="hidden"></div>
+
+    <!-- EVENT MODAL -->
     <div id="modal-overlay" class="hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <div id="modal">
         <div id="modal-header">
@@ -84,35 +93,63 @@
       </div>
     </div>
 
-  </div><!-- /#app -->
-
-  <!-- DAILY GREETING -->
-  <div id="greeting-overlay" class="hidden" role="dialog" aria-modal="true" aria-labelledby="greeting-title">
-    <div id="greeting-card">
-      <div class="cat-face">
-        <div class="cat-ear cat-ear-left"><div class="cat-ear-inner"></div></div>
-        <div class="cat-ear cat-ear-right"><div class="cat-ear-inner"></div></div>
-        <div class="cat-eyes">
-          <div class="cat-eye"><div class="cat-pupil"></div></div>
-          <div class="cat-eye"><div class="cat-pupil"></div></div>
+    <!-- DAILY GREETING (black cat) -->
+    <div id="greeting-overlay" class="hidden" role="dialog" aria-modal="true" aria-labelledby="greeting-title">
+      <div id="greeting-card">
+        <div class="cat-face">
+          <div class="cat-ear cat-ear-left"><div class="cat-ear-inner"></div></div>
+          <div class="cat-ear cat-ear-right"><div class="cat-ear-inner"></div></div>
+          <div class="cat-eyes">
+            <div class="cat-eye"><div class="cat-pupil"></div></div>
+            <div class="cat-eye"><div class="cat-pupil"></div></div>
+          </div>
+          <div class="cat-nose"></div>
+          <div class="cat-smile"></div>
+          <div class="cat-whiskers">
+            <span class="whisker wl1"></span>
+            <span class="whisker wl2"></span>
+            <span class="whisker wr1"></span>
+            <span class="whisker wr2"></span>
+          </div>
         </div>
-        <div class="cat-nose"></div>
-        <div class="cat-smile"></div>
-        <div class="cat-whiskers">
-          <span class="whisker wl1"></span>
-          <span class="whisker wl2"></span>
-          <span class="whisker wr1"></span>
-          <span class="whisker wr2"></span>
+        <h2 id="greeting-title">Hey there!</h2>
+        <p id="greeting-message"></p>
+        <div id="greeting-actions">
+          <button id="btn-greeting-add" class="btn-primary">Add to today</button>
+          <button id="btn-greeting-dismiss" class="btn-ghost">Maybe later</button>
         </div>
-      </div>
-      <h2 id="greeting-title">Hey there!</h2>
-      <p id="greeting-message"></p>
-      <div id="greeting-actions">
-        <button id="btn-greeting-add" class="btn-primary">Add to today</button>
-        <button id="btn-greeting-dismiss" class="btn-ghost">Maybe later</button>
       </div>
     </div>
-  </div>
+
+    <!-- WEEK NAV CAT (gray cat) -->
+    <div id="week-cat-overlay" class="hidden" role="dialog" aria-modal="true" aria-labelledby="week-cat-title">
+      <div id="week-cat-card">
+        <div class="cat-face cat-face--gray">
+          <div class="cat-ear cat-ear-left"><div class="cat-ear-inner"></div></div>
+          <div class="cat-ear cat-ear-right"><div class="cat-ear-inner"></div></div>
+          <div class="cat-eyes">
+            <div class="cat-eye cat-eye--blue"><div class="cat-pupil"></div></div>
+            <div class="cat-eye cat-eye--blue"><div class="cat-pupil"></div></div>
+          </div>
+          <div class="cat-nose"></div>
+          <div class="cat-smile"></div>
+          <div class="cat-whiskers">
+            <span class="whisker wl1"></span>
+            <span class="whisker wl2"></span>
+            <span class="whisker wr1"></span>
+            <span class="whisker wr2"></span>
+          </div>
+        </div>
+        <h2 id="week-cat-title">New week!</h2>
+        <p id="week-cat-message"></p>
+        <div id="week-cat-actions">
+          <button id="btn-week-cat-add" class="btn-primary">Add to this week</button>
+          <button id="btn-week-cat-dismiss" class="btn-ghost">Just browsing</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /#app -->
 
   <script src="app.js"></script>
 </body>
