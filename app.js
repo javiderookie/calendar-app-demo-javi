@@ -471,15 +471,10 @@ function initColorPicker() {
 
 /* ── Daily Greeting (black cat) ── */
 function maybeShowGreeting() {
-  const today = formatDate(new Date());
-  if (localStorage.getItem(GREETING_KEY) === today) return;
-
   const now = new Date();
   document.getElementById('greeting-message').textContent =
     `It's ${DAYS_FULL[now.getDay()]}, ${formatDisplayDate(now)}. Want to add something to your agenda today?`;
-
   document.getElementById('greeting-overlay').classList.remove('hidden');
-  localStorage.setItem(GREETING_KEY, today);
 }
 
 function closeGreeting() {
