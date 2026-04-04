@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendar</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- HEADER -->
+    <header id="app-header">
+      <button id="btn-prev-week" class="nav-btn" aria-label="Previous week">&#8249;</button>
+      <h1 id="week-label"></h1>
+      <button id="btn-next-week" class="nav-btn" aria-label="Next week">&#8250;</button>
+      <button id="btn-today" class="today-btn">Today</button>
+    </header>
+
+    <!-- GRID WRAPPER -->
+    <div id="grid-wrapper">
+
+      <!-- Time gutter -->
+      <div id="time-gutter"></div>
+
+      <!-- Day grid -->
+      <div id="day-grid">
+        <div id="day-headers"></div>
+        <div id="slots-container"></div>
+      </div>
+
+    </div>
+
+    <!-- MODAL -->
+    <div id="modal-overlay" class="hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div id="modal">
+        <div id="modal-header">
+          <h2 id="modal-title">New Event</h2>
+          <button id="modal-close" aria-label="Close">&times;</button>
+        </div>
+        <form id="event-form" novalidate>
+
+          <div class="form-group">
+            <label for="input-title">Title <span class="required">*</span></label>
+            <input id="input-title" type="text" maxlength="80" autocomplete="off" placeholder="Event title">
+            <span class="field-error" id="error-title"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="input-date">Date <span class="required">*</span></label>
+            <input id="input-date" type="date">
+            <span class="field-error" id="error-date"></span>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="input-start">Start <span class="required">*</span></label>
+              <input id="input-start" type="time">
+              <span class="field-error" id="error-start"></span>
+            </div>
+            <div class="form-group">
+              <label for="input-end">End <span class="required">*</span></label>
+              <input id="input-end" type="time">
+              <span class="field-error" id="error-end"></span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="input-desc">Description</label>
+            <textarea id="input-desc" rows="3" maxlength="500" placeholder="Optional notes"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Color</label>
+            <div id="color-picker"></div>
+          </div>
+
+          <div id="modal-actions">
+            <button type="button" id="btn-delete-event" class="btn-danger hidden">Delete</button>
+            <button type="submit" id="btn-save-event" class="btn-primary">Save</button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+  </div><!-- /#app -->
+
+  <script src="app.js"></script>
+</body>
+</html>
