@@ -447,6 +447,45 @@ function attachEventListeners() {
   });
 }
 
+/* ── Daily Greeting ── */
+const GREETING_KEY = 'calendarGreetingDate';
+
+function maybeShowGreeting() {
+  const today = formatDate(new Date());
+  if (localStorage.getItem(GREETING_KEY) === today) return;
+
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const now = new Date();
+  const dayName = days[now.getDay()];
+  const dateLabel = formatDisplayDate(now);
+
+  document.getElementById('greeting-message').textContent =
+    `It's ${dayName}, ${dateLabel}. Want to add something to your agenda today?`;
+
+  document.getElementById('greeting-overlay').classList.remove('hidden');
+  localStorage.setItem(GREETING_KEY, today);
+}
+
+function closeGreeting() {
+  document.getElementById('greeting-overlay').classList.add('hidden');
+}
+
+function attachGreetingListeners() {
+  document.getElementById('btn-greeting-dismiss').addEventListener('click', closeGreeting);
+
+  document.getElementById('btn-greeting-add').addEventListener('click', () => {
+    closeGreeting();
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = now.getMinutes() < 30 ? '00' : '30';
+    openNewModal(formatDate(now), `${hh}:${mm}`);
+  });
+
+  document.getElementById('greeting-overlay').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('greeting-overlay')) closeGreeting();
+  });
+}
+
 /* ── Init ── */
 function init() {
   state.events = loadEvents();
@@ -456,6 +495,8 @@ function init() {
   scrollToCurrentHour();
   syncGutterScroll();
   attachEventListeners();
+  attachGreetingListeners();
+  maybeShowGreeting();
 }
 
 document.addEventListener('DOMContentLoaded', init);
