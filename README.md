@@ -1,43 +1,110 @@
-# Calendar App
+# CatLenDar
 
-A lightweight weekly calendar built with vanilla HTML, CSS, and JavaScript. No frameworks, no build step, no dependencies — open `index.html` and it works.
+A personal weekly/monthly calendar with a cat personality. Built with vanilla HTML, CSS, and JavaScript — no frameworks, no build step. Secured with Netlify Identity and deployed on Netlify.
+
+**Live:** https://prismatic-sorbet-535bd3.netlify.app
+
+---
 
 ## Features
 
+### Calendar
 - **Weekly grid** — 7-column × 48-row layout (30-minute slots, 12 AM – 11:30 PM)
-- **Add events** — click any time slot to open a pre-filled modal
+- **Monthly view** — full calendar grid with event chips per day, switchable from the header
+- **Add events** — click any time slot (week) or day cell (month) to open a pre-filled modal
 - **Edit events** — click any event block to modify it
 - **Delete events** — remove events from the edit modal with a confirmation prompt
 - **Color coding** — assign one of 6 colors per event
-- **localStorage persistence** — events survive page reloads with no backend required
 - **Week navigation** — prev/next arrows and a Today shortcut
+- **Month navigation** — prev/next arrows shift by month when in month view
+- **localStorage persistence** — events survive page reloads with no backend required
 - **Form validation** — inline errors for missing fields and invalid time ranges
-- **Responsive** — adapts to desktop, tablet, and mobile viewports
-- **Accessible** — `aria-modal`, `aria-invalid`, keyboard dismiss (Escape)
+- **Responsive** — adapts to desktop (>768px), tablet (480–768px), and mobile (<480px)
+- **Accessible** — `aria-modal`, `aria-invalid`, Escape key closes all overlays
 
-## Getting Started
+### Cat Popups
+- **Black cat** — appears every time the app loads, asks if you want to add something to today's agenda. "Add to today" pre-fills the modal with the current time slot.
+- **Gray & white cat** — appears every time you navigate to a different week (prev/next), asks if you want to plan something for that week. "Add to this week" pre-fills the modal for Monday at 9 AM.
+
+### Authentication
+- **Netlify Identity** login gate — the calendar only loads after signing in
+- Email + password authentication (invite-only by default)
+- Logged-in user email shown in the header with a Sign out button
+- Login screen features the CatLenDar brand and the black cat
+
+---
+
+## Getting Started (local)
 
 ```bash
 git clone https://github.com/javiderookie/calendar-app-demo-javi.git
 cd calendar-app-demo-javi
 open index.html        # macOS
-# or just double-click index.html in your file explorer
 ```
 
-No install step. No server required.
+> Note: Netlify Identity only works on the deployed URL. Locally, the Sign In button will open the identity widget but auth will fail — use the live URL for the full experience.
+
+---
+
+## Deployment
+
+The app is deployed on Netlify as a static site (no build step).
+
+### Re-deploy after changes
+
+```bash
+netlify deploy --prod --dir .
+```
+
+### First-time Netlify Identity setup
+
+1. Go to **app.netlify.com → your site → Identity → Enable Identity**
+2. Under **Settings → Registration** → set to **Invite only**
+3. Click **Invite users** → enter your email → accept the invite and set a password
+
+---
 
 ## Project Structure
 
 ```
 .
-├── index.html        # App shell and modal markup
-├── style.css         # All styles — layout, components, responsive breakpoints
-├── app.js            # All logic — data layer, rendering, validation, handlers
+├── index.html        # App shell, login screen, modals, cat overlays
+├── style.css         # All styles — layout, views, cats, login, responsive
+├── app.js            # All logic — auth, data, rendering, validation, handlers
 └── tasks/
     └── todo.md       # Feature checklist and acceptance criteria
 ```
 
+---
+
 ## Architecture
+
+### Authentication Flow
+
+On `DOMContentLoaded`, `initAuth()` runs instead of `init()`:
+
+1. Checks `netlifyIdentity.currentUser()`
+2. If a session exists → hides login screen, shows app, calls `init()`
+3. If no session → shows login screen
+4. On successful login → same as step 2
+5. On logout → hides app, shows login screen
+
+The Netlify Identity Widget is loaded from CDN and handles all credential management, token refresh, and secure storage.
+
+### State
+
+```js
+{
+  view: 'week',        // 'week' | 'month'
+  weekOffset: 0,       // 0 = current week, ±N = N weeks forward/back
+  monthOffset: 0,      // 0 = current month, ±N = N months forward/back
+  events: [],          // in-memory mirror of localStorage
+  editingId: null,     // null = new event, string = editing existing
+  selectedColor: '#4A90E2'
+}
+```
+
+`view` and both offsets are independent — switching views preserves your position in the other view.
 
 ### Data Model
 
@@ -55,69 +122,62 @@ Events are stored in `localStorage` under the key `calendarEvents` as a JSON arr
 }
 ```
 
-IDs are generated client-side (`evt_{timestamp}_{4-digit random}`) — no collision risk at this scale, and no server round-trip needed.
+IDs are generated client-side (`evt_{timestamp}_{4-digit random}`). `loadEvents()` wraps `JSON.parse` in a `try/catch` — a corrupted or missing key silently returns `[]`.
 
 ### Rendering
 
-The grid is rebuilt on every state change (`renderAll()`). This is intentional: the dataset is small (all events for one week), DOM diffing would add complexity for no measurable gain, and a full re-render keeps the code easy to follow.
+`renderAll()` is the single entry point for UI updates. It checks `state.view` and delegates to either the week renderer or the month renderer, then syncs the toggle button state.
 
-Event blocks are absolutely positioned inside their `.day-column` using pixel offsets derived from start time:
-
+**Week view** — event blocks are absolutely positioned inside `.day-column` using pixel offsets:
 ```
-top    = (startMinutes / 30) * SLOT_HEIGHT
+top    = (startMinutes / 30) * SLOT_HEIGHT   // 48px per 30-min slot
 height = (durationMinutes / 30) * SLOT_HEIGHT
 ```
 
-`SLOT_HEIGHT` is defined once in both CSS (`--slot-height: 48px`) and JS (`const SLOT_HEIGHT = 48`) — if you change the slot height, update both.
+**Month view** — a CSS grid of day cells, each showing up to 3 colored event chips. Overflow shows a "+N more" label. Clicking a chip opens the edit modal; clicking the cell background opens the new event modal for that date at 9 AM.
 
-### State
+### CSS Cats
 
-A single top-level `state` object holds everything:
+All three cats (black, gray/white login cat, gray week-nav cat) are drawn purely in CSS — no images, no SVGs, no external assets. Each is a `.cat-face` div with modifier classes:
 
-```js
-{
-  weekOffset: 0,       // 0 = current week, ±N = N weeks forward/back
-  events: [],          // in-memory mirror of localStorage
-  editingId: null,     // null = new event, string = editing existing
-  selectedColor: '#4A90E2'
-}
-```
+| Cat | Class | Eyes | Used for |
+|---|---|---|---|
+| Black | `.cat-face` (default) | Yellow | Daily greeting + login screen |
+| Gray/white | `.cat-face--gray` | Blue | Week navigation popup |
 
-No reactive framework — mutations are explicit and always followed by a `renderAll()` call.
-
-### localStorage
-
-`loadEvents()` wraps `JSON.parse` in a `try/catch` so a corrupted or missing key silently returns `[]`. `saveEvents()` always writes the full array — fine for a local personal tool; would need a smarter diff/patch strategy if the dataset were large.
-
-## Responsive Breakpoints
+### Responsive Breakpoints
 
 | Breakpoint | Behaviour |
 |---|---|
-| > 768px | Full grid, day names visible |
-| 480 – 768px | Day abbreviations hidden, narrower time gutter |
-| < 480px | Form inputs stack vertically, grid allows horizontal scroll |
+| > 768px | Full grid, day names visible, full header |
+| 480 – 768px | Day abbreviations hidden, narrower gutter |
+| < 480px | Header wraps to two rows, form inputs stack, grid allows horizontal scroll |
 
-The modal is always `min(480px, 94vw)` — it never overflows the viewport.
+---
 
 ## Keyboard & Interaction
 
 | Action | Trigger |
 |---|---|
-| Add event | Click any time slot |
-| Edit event | Click an event block |
-| Close modal | Escape key or click outside modal |
+| Add event | Click any time slot (week) or day cell (month) |
+| Edit event | Click an event block or chip |
+| Close modal | Escape key or click outside |
 | Delete event | Delete button in edit modal → confirm dialog |
-| Navigate weeks | ‹ / › buttons, or Today |
+| Navigate | ‹ / › buttons (week or month), Today button |
+| Switch view | Week / Month toggle in header |
+| Sign out | Sign out button in header |
 
-## Known Limitations & Potential Improvements
+---
 
-- **No drag-and-drop** — events are moved by reopening the edit modal and changing the time
+## Known Limitations
+
+- **No drag-and-drop** — events are moved by reopening the edit modal
 - **No multi-day events** — each event lives on a single date
-- **No overlap handling** — two events at the same time stack on top of each other
-- **Single user, local only** — no sync, no accounts, no server
+- **No overlap handling** — concurrent events stack on top of each other
+- **localStorage is per-browser** — no sync across devices (auth protects the UI but not the data layer)
 - **Week starts on Sunday** — not configurable
 
-If this were to grow into a production app, the natural next steps would be: a proper backend (events keyed per user), conflict detection and visual overlap layout (the Overlap Columns algorithm), drag-to-create and drag-to-move interactions, and recurring event support.
+---
 
 ## License
 
