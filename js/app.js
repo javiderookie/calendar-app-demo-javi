@@ -12,7 +12,7 @@ const MONTHS_FULL    = ['January', 'February', 'March', 'April', 'May', 'June',
 
 /* ── State ── */
 let state = {
-  view: 'week',           // 'week' | 'month'
+  view: 'week',           // 'week' | 'month' | 'artists'
   weekOffset: 0,
   monthOffset: 0,
   events: [],
@@ -136,20 +136,29 @@ function formatTimeDisplay(timeStr) {
 
 /* ── Rendering ── */
 function renderAll() {
+  const isArtists = state.view === 'artists';
+
+  document.getElementById('grid-wrapper').classList.toggle('hidden', state.view !== 'week');
+  document.getElementById('month-grid').classList.toggle('hidden', state.view !== 'month');
+  document.getElementById('artists-view').classList.toggle('hidden', !isArtists);
+  document.getElementById('nav-controls').classList.toggle('hidden', isArtists);
+
+  document.getElementById('btn-view-week').classList.toggle('active', state.view === 'week');
+  document.getElementById('btn-view-month').classList.toggle('active', state.view === 'month');
+  document.getElementById('btn-view-artists').classList.toggle('active', isArtists);
+
+  if (isArtists) {
+    initOrRefreshMap();
+    return;
+  }
+
   renderHeader();
   if (state.view === 'week') {
-    document.getElementById('grid-wrapper').classList.remove('hidden');
-    document.getElementById('month-grid').classList.add('hidden');
     renderDayHeaders();
     renderGrid();
   } else {
-    document.getElementById('grid-wrapper').classList.add('hidden');
-    document.getElementById('month-grid').classList.remove('hidden');
     renderMonth();
   }
-  // Sync view toggle button states
-  document.getElementById('btn-view-week').classList.toggle('active', state.view === 'week');
-  document.getElementById('btn-view-month').classList.toggle('active', state.view === 'month');
 }
 
 function renderHeader() {
@@ -572,6 +581,12 @@ function attachEventListeners() {
     renderAll();
   });
 
+  document.getElementById('btn-view-artists').addEventListener('click', () => {
+    if (state.view === 'artists') return;
+    state.view = 'artists';
+    renderAll();
+  });
+
   // Week view: slot click
   document.getElementById('slots-container').addEventListener('click', (e) => {
     const slot = e.target.closest('.time-slot');
@@ -639,6 +654,7 @@ function init() {
   attachEventListeners();
   attachGreetingListeners();
   attachWeekCatListeners();
+  attachArtistsListeners();
   maybeShowGreeting();
 }
 

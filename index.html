@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CatLenDar</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/artists.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 <body>
@@ -52,8 +54,9 @@
       </div>
 
       <div id="view-toggle">
-        <button id="btn-view-week" class="view-btn active">Week</button>
-        <button id="btn-view-month" class="view-btn">Month</button>
+        <button id="btn-view-week"    class="view-btn active">Week</button>
+        <button id="btn-view-month"   class="view-btn">Month</button>
+        <button id="btn-view-artists" class="view-btn">Artistas CyL</button>
       </div>
 
       <div id="user-info">
@@ -73,6 +76,50 @@
 
     <!-- MONTH VIEW -->
     <div id="month-grid" class="hidden"></div>
+
+    <!-- ARTISTS MAP VIEW -->
+    <div id="artists-view" class="hidden">
+      <aside id="artists-sidebar">
+        <div class="artists-sidebar-top">
+          <div class="artists-title-row">
+            <h2>Artistas de Castilla y León</h2>
+            <span id="artists-count"></span>
+          </div>
+          <div class="artists-filters">
+            <input id="artists-search" type="search" placeholder="Buscar artista, ciudad o género…" autocomplete="off">
+            <div class="artists-selects">
+              <select id="artists-genre-filter" class="artists-select" aria-label="Género">
+                <option value="">Todos los géneros</option>
+              </select>
+              <select id="artists-province-filter" class="artists-select" aria-label="Provincia">
+                <option value="">Todas las provincias</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div id="artists-list"></div>
+
+        <div class="artists-api-section">
+          <button id="btn-toggle-api">
+            <span>Last.fm API Key</span>
+            <span id="api-status-dot" class="api-dot api-dot--off"></span>
+          </button>
+          <div id="api-settings-panel" class="hidden">
+            <p class="api-help">Enriquece los artistas con imágenes y biogs. Clave gratuita en <a href="https://www.last.fm/api/account/create" target="_blank" rel="noopener">last.fm/api</a></p>
+            <div class="api-input-row">
+              <input id="lastfm-key-input" type="password" placeholder="Pega tu API key aquí…">
+              <button id="btn-save-api-key" class="btn-primary">Guardar</button>
+            </div>
+            <button id="btn-clear-api-key" class="hidden">Borrar clave</button>
+          </div>
+        </div>
+      </aside>
+
+      <main id="artists-map-wrapper">
+        <div id="artists-map"></div>
+      </main>
+    </div>
 
   </div><!-- /#app -->
 
@@ -185,6 +232,8 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="js/artists.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>
