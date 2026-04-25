@@ -1,0 +1,468 @@
+/* ── Artists View Layout ── */
+#artists-view {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+#artists-sidebar {
+  width: 310px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+/* ── Sidebar Header ── */
+.artists-sidebar-top {
+  padding: 14px 14px 0;
+  flex-shrink: 0;
+}
+
+.artists-title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.artists-title-row h2 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+#artists-count {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+/* ── Filters ── */
+.artists-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+#artists-search {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  background: var(--color-bg);
+  font-family: inherit;
+}
+
+#artists-search:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.15);
+}
+
+.artists-selects {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.artists-select {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--color-text-primary);
+  background: var(--color-bg);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.artists-select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+/* ── Artist List ── */
+#artists-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.artists-empty {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+/* ── Artist Card ── */
+.artist-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+  margin-bottom: 3px;
+  position: relative;
+  overflow: hidden;
+}
+
+.artist-card:hover { background: var(--color-bg); }
+
+.artist-card.active {
+  background: var(--color-today-bg);
+  border-color: var(--color-accent);
+}
+
+.artist-card-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: 3px 0 0 3px;
+}
+
+.artist-card-left {
+  flex-shrink: 0;
+  position: relative;
+  width: 42px;
+  height: 42px;
+}
+
+.artist-card-img {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  object-fit: cover;
+  display: block;
+}
+
+.artist-card-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.artist-card-body {
+  flex: 1;
+  min-width: 0;
+  padding-left: 6px;
+}
+
+.artist-card-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.artist-card-sub {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 2px;
+}
+
+.artist-card-genre {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.sep {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+}
+
+.artist-card-city {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.artist-card-period {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.artist-card-listeners {
+  font-size: 10px;
+  color: var(--color-accent);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* ── API Key Section ── */
+.artists-api-section {
+  flex-shrink: 0;
+  border-top: 1px solid var(--color-border);
+  padding: 8px 14px;
+}
+
+#btn-toggle-api {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 5px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+#btn-toggle-api:hover { color: var(--color-text-primary); }
+
+.api-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.api-dot--on  { background: #27AE60; }
+.api-dot--off { background: #ccc; }
+
+#api-settings-panel {
+  padding: 8px 0 4px;
+}
+
+.api-help {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  margin-bottom: 7px;
+  line-height: 1.4;
+}
+
+.api-help a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.api-help a:hover { text-decoration: underline; }
+
+.api-input-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+#lastfm-key-input {
+  flex: 1;
+  padding: 6px 9px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: monospace;
+  color: var(--color-text-primary);
+  background: var(--color-bg);
+  min-width: 0;
+}
+
+#lastfm-key-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.15);
+}
+
+#btn-save-api-key {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+#btn-clear-api-key {
+  background: none;
+  border: none;
+  color: var(--color-danger);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px 0;
+  font-family: inherit;
+}
+
+#btn-clear-api-key:hover { text-decoration: underline; }
+
+/* ── Map Container ── */
+#artists-map-wrapper {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+#artists-map {
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Leaflet Map Markers ── */
+.a-pin {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  border: 2.5px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  letter-spacing: 0.5px;
+}
+
+.a-pin:hover {
+  transform: scale(1.18);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+/* ── Leaflet Popup ── */
+.a-popup .leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
+  padding: 0;
+  overflow: hidden;
+}
+
+.a-popup .leaflet-popup-content {
+  margin: 0;
+  width: 280px !important;
+}
+
+.a-popup .leaflet-popup-tip-container { display: block; }
+
+.artist-popup {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.popup-img {
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+  display: block;
+}
+
+.popup-body {
+  padding: 12px 14px 14px;
+}
+
+.popup-body h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 6px;
+}
+
+.popup-badge {
+  display: inline-block;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  letter-spacing: 0.3px;
+}
+
+.popup-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.popup-listeners {
+  font-size: 11px;
+  color: #4a90e2;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.popup-bio {
+  font-size: 12px;
+  color: #444;
+  line-height: 1.5;
+  margin-bottom: 7px;
+}
+
+.popup-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.popup-tags span {
+  background: #f0f4f8;
+  color: #6b7280;
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.popup-link {
+  display: inline-block;
+  font-size: 11px;
+  color: #c0392b;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.popup-link:hover { text-decoration: underline; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  #artists-view { flex-direction: column; }
+
+  #artists-sidebar {
+    width: 100%;
+    height: 46%;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .artists-selects { grid-template-columns: 1fr 1fr; }
+
+  #artists-map-wrapper {
+    height: 54%;
+    flex: none;
+  }
+}
+
+@media (max-width: 480px) {
+  #artists-sidebar { height: 50%; }
+
+  .a-popup .leaflet-popup-content {
+    width: 240px !important;
+  }
+}
