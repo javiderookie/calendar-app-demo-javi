@@ -658,46 +658,7 @@ function init() {
   maybeShowGreeting();
 }
 
-/* ── Auth ── */
-function showApp(user) {
-  document.getElementById('login-screen').classList.add('hidden');
+document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('app').classList.remove('hidden');
-  document.getElementById('user-email').textContent = user.email;
   init();
-}
-
-function showLogin() {
-  document.getElementById('login-screen').classList.remove('hidden');
-  document.getElementById('app').classList.add('hidden');
-}
-
-function initAuth() {
-  const identity = window.netlifyIdentity;
-
-  // Already logged in
-  const currentUser = identity.currentUser();
-  if (currentUser) {
-    showApp(currentUser);
-  } else {
-    showLogin();
-  }
-
-  identity.on('login', (user) => {
-    identity.close();
-    showApp(user);
-  });
-
-  identity.on('logout', () => {
-    showLogin();
-  });
-
-  document.getElementById('btn-signin').addEventListener('click', () => {
-    identity.open('login');
-  });
-
-  document.getElementById('btn-logout').addEventListener('click', () => {
-    identity.logout();
-  });
-}
-
-document.addEventListener('DOMContentLoaded', initAuth);
+});
