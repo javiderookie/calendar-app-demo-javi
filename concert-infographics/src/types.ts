@@ -16,6 +16,7 @@ export interface Infographic {
   kind: Kind
   title: string
   subtitle: string
+  banner: string
   venue: string
   ticketsUrl: string
   footer: string

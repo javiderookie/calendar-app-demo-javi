@@ -21,6 +21,7 @@ const sample = (): Infographic => ({
   kind: 'cycle',
   title: 'Noches de Jazz',
   subtitle: 'Ciclo de otoño 2026',
+  banner: 'El cartel',
   venue: 'Café Central · Madrid',
   ticketsUrl: 'tuweb-de-entradas.com',
   footer: 'notedetengas.es',
@@ -71,4 +72,43 @@ export const persistDoc = () =>
     }
   })
 
-export const resetDoc = () => setDoc(sample())
+// Bee Week Madrid, first line-up announcement (data from the festival poster).
+const beeWeek = (): Infographic => {
+  const c = (artist: string, date: string, venue: string) => newConcert({ artist, date, venue, time: '' })
+  return {
+    kind: 'cycle',
+    title: 'bee week',
+    subtitle: 'Marzo - Abril',
+    banner: 'Primer avance de cartel',
+    venue: 'Madrid · Salas · Abejas · Conciertos',
+    ticketsUrl: '',
+    footer: '@beeweekfest',
+    credit: 'El festival de la primavera',
+    intro: '¡Y muchos más por confirmar!',
+    highlight: { big: '', text: '' },
+    mapImage: '',
+    formatId: 'portrait',
+    templateId: 'bee',
+    palette: { ...templateById('bee').palette },
+    concerts: [
+      c('Oslo Ovnies', '2027-03-07', 'El Sol'),
+      c('Holywater', '2027-03-12', 'Siroco'),
+      c('Willy Dolores', '2027-04-02', 'El Sótano'),
+      c('Guadalupe Plata', '2027-04-08', 'Copérnico'),
+      c('Cora Yako', '2027-04-09', 'La Riviera'),
+      c('Hnos. Muñoz', '2027-04-10', 'Siroco'),
+      c('Le Parody', '2027-04-15', 'Villanos'),
+      c('Anadie', '2027-04-16', 'Uni'),
+      c('Morreo', '2027-04-22', 'Clamores'),
+      c('Hermanos Visi', '2027-04-23', 'Siroco'),
+      c('Niñatas', '2027-04-23', 'El Sótano'),
+    ],
+  }
+}
+
+export const PRESETS = [
+  { id: 'demo', label: 'Noches de Jazz (demo)', build: sample },
+  { id: 'beeweek', label: 'Bee Week 2027', build: beeWeek },
+]
+
+export const loadPreset = (id: string) => setDoc((PRESETS.find((p) => p.id === id) ?? PRESETS[0]).build())

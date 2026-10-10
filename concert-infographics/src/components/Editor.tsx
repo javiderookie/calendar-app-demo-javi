@@ -1,12 +1,12 @@
 import { For, Show } from 'solid-js'
-import { doc, newConcert, resetDoc, setDoc } from '../lib/store'
+import { doc, loadPreset, newConcert, PRESETS, setDoc } from '../lib/store'
 import { FORMATS } from '../lib/formats'
 import { TEMPLATES, templateById } from '../templates'
 import { fileToDataUrl } from '../lib/image'
 import type { Concert, Infographic, Kind } from '../types'
 import { Field, inputClass } from './Field'
 
-type TextKey = 'title' | 'subtitle' | 'venue' | 'ticketsUrl' | 'footer' | 'credit'
+type TextKey = 'title' | 'subtitle' | 'banner' | 'venue' | 'ticketsUrl' | 'footer' | 'credit'
 type ConcertKey = Exclude<keyof Concert, 'id' | 'image' | 'pin'>
 
 export default function Editor() {
@@ -92,7 +92,8 @@ export default function Editor() {
         <h2 class="text-sm font-extrabold uppercase">Cabecera</h2>
         {text('title', doc.kind === 'cycle' ? 'Nombre del ciclo' : 'Título (si no hay artista)')}
         {text('subtitle', 'Subtítulo / antetítulo')}
-        {text('venue', 'Sala / ciudad')}
+        {text('banner', 'Rótulo del cartel (p. ej. «Primer avance de cartel»)')}
+        {text('venue', 'Sala / ciudad (separa etiquetas con «·»)')}
         <div class="grid grid-cols-2 gap-3">
           {text('ticketsUrl', 'Entradas')}
           {text('footer', 'Pie / firma')}
@@ -199,9 +200,23 @@ export default function Editor() {
         </For>
       </section>
 
-      <button type="button" class="self-start text-xs text-neutral-500 underline" onClick={resetDoc}>
-        Restablecer ejemplo
-      </button>
+      <section class="flex items-end gap-2 border-t border-neutral-200 pt-4">
+        <Field label="Cargar ejemplo" class="flex-1">
+          <select id="preset" class={inputClass}>
+            <For each={PRESETS}>{(p) => <option value={p.id}>{p.label}</option>}</For>
+          </select>
+        </Field>
+        <button
+          type="button"
+          class="rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-sm font-semibold"
+          onClick={() => {
+            const id = (document.getElementById('preset') as HTMLSelectElement).value
+            if (confirm('Esto sustituye el borrador actual. ¿Continuar?')) loadPreset(id)
+          }}
+        >
+          Cargar
+        </button>
+      </section>
     </div>
   )
 }

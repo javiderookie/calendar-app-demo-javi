@@ -5,6 +5,7 @@ import Minimal from './Minimal'
 import Analog from './Analog'
 import MapRoute from './MapRoute'
 import Iso from './Iso'
+import Panal from './Panal'
 
 export interface TemplateProps {
   doc: Infographic
@@ -39,6 +40,12 @@ export const TEMPLATES: Template[] = [
     label: 'Isométrico (recorrido 3D)',
     component: Iso,
     palette: { bg: '#4a55a0', fg: '#ffffff', accent: '#ef6f6c', accent2: '#f6d55c' },
+  },
+  {
+    id: 'bee',
+    label: 'Panal (festival primavera)',
+    component: Panal,
+    palette: { bg: '#f7c936', fg: '#1d2a4d', accent: '#4f9be6', accent2: '#e8524a' },
   },
   {
     id: 'bold',
