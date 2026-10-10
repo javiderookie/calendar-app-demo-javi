@@ -3,10 +3,13 @@ import type { Format, Infographic, Palette } from '../types'
 import Bold from './Bold'
 import Minimal from './Minimal'
 import Analog from './Analog'
+import MapRoute from './MapRoute'
 
 export interface TemplateProps {
   doc: Infographic
   format: Format
+  /** Set by the editor preview so templates can offer drag-to-place interactions. */
+  onPinMove?: (id: string, x: number, y: number) => void
 }
 
 export interface Template {
@@ -23,6 +26,12 @@ export const TEMPLATES: Template[] = [
     label: 'Analógico (riso retro)',
     component: Analog,
     palette: { bg: '#f3ecdc', fg: '#232d6b', accent: '#e78db3', accent2: '#4fd88a' },
+  },
+  {
+    id: 'map',
+    label: 'Mapa (ruta por salas)',
+    component: MapRoute,
+    palette: { bg: '#f4ead8', fg: '#1f4e79', accent: '#c4513a', accent2: '#3f8f5a' },
   },
   {
     id: 'bold',

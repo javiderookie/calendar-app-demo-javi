@@ -27,6 +27,7 @@ const sample = (): Infographic => ({
   credit: 'Por Javi · notedetengas',
   intro: 'Cuatro viernes de otoño para escuchar jazz de cerca, como se escuchaba antes: sin prisa y en directo.',
   highlight: { big: '4', text: 'noches de jazz en directo' },
+  mapImage: '',
   formatId: 'a4',
   templateId: 'analog',
   palette: { ...templateById('analog').palette },

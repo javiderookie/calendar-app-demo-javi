@@ -7,7 +7,7 @@ import type { Concert, Infographic, Kind } from '../types'
 import { Field, inputClass } from './Field'
 
 type TextKey = 'title' | 'subtitle' | 'venue' | 'ticketsUrl' | 'footer' | 'credit'
-type ConcertKey = Exclude<keyof Concert, 'id' | 'image'>
+type ConcertKey = Exclude<keyof Concert, 'id' | 'image' | 'pin'>
 
 export default function Editor() {
   const text = (key: TextKey, label: string) => (
@@ -99,6 +99,40 @@ export default function Editor() {
         </div>
         {text('credit', 'Crédito (arriba)')}
       </section>
+
+      <Show when={doc.templateId === 'map'}>
+        <section class="flex flex-col gap-3">
+          <h2 class="text-sm font-extrabold uppercase">Mapa</h2>
+          <p class="text-xs text-neutral-500">
+            Arrastra los pines en la vista previa para colocarlos. Los conciertos del mismo día comparten número y color.
+          </p>
+          <Field label="Imagen de mapa (opcional; si no, se usa el ilustrado)">
+            <input
+              type="file"
+              accept="image/*"
+              class="text-xs"
+              onChange={async (e) => {
+                const file = e.currentTarget.files?.[0]
+                if (file) setDoc('mapImage', await fileToDataUrl(file, 1600))
+              }}
+            />
+          </Field>
+          <div class="flex gap-4 text-xs">
+            <Show when={doc.mapImage}>
+              <button type="button" class="text-red-600 underline" onClick={() => setDoc('mapImage', '')}>
+                Quitar imagen de mapa
+              </button>
+            </Show>
+            <button
+              type="button"
+              class="text-neutral-600 underline"
+              onClick={() => setDoc('concerts', {}, 'pin', undefined)}
+            >
+              Recolocar pines automáticamente
+            </button>
+          </div>
+        </section>
+      </Show>
 
       <section class="flex flex-col gap-3">
         <h2 class="text-sm font-extrabold uppercase">Datos destacados</h2>

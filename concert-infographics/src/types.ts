@@ -9,6 +9,7 @@ export interface Concert {
   price: string
   note: string
   image: string // resized data URL, optional
+  pin?: { x: number; y: number } // map position in %, optional
 }
 
 export interface Infographic {
@@ -21,6 +22,7 @@ export interface Infographic {
   credit: string
   intro: string
   highlight: { big: string; text: string }
+  mapImage: string
   formatId: FormatId
   templateId: string
   palette: Palette

@@ -1,6 +1,6 @@
 import { createSignal, onCleanup, onMount } from 'solid-js'
 import { Dynamic } from 'solid-js/web'
-import { doc } from '../lib/store'
+import { doc, setDoc } from '../lib/store'
 import { formatById } from '../lib/formats'
 import { templateById } from '../templates'
 
@@ -35,7 +35,14 @@ export default function Preview(props: { ref: (el: HTMLDivElement) => void }) {
             transform: `scale(${scale()})`,
           }}
         >
-          <Dynamic component={templateById(doc.templateId).component} doc={doc} format={format()} />
+          <Dynamic
+            component={templateById(doc.templateId).component}
+            doc={doc}
+            format={format()}
+            onPinMove={(id: string, x: number, y: number) =>
+              setDoc('concerts', (c) => c.id === id, 'pin', { x, y })
+            }
+          />
         </div>
       </div>
     </div>
