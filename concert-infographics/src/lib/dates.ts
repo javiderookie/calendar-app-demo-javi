@@ -18,3 +18,7 @@ export const dateParts = (iso: string) => {
 
 export const sortByDate = <T extends { date: string; time: string }>(items: T[]) =>
   [...items].sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`))
+
+const LONG = new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
+
+export const longDate = (iso: string) => (iso ? LONG.format(parse(iso)) : '')

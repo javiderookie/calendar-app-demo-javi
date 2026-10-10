@@ -1,12 +1,13 @@
 import { For, Show } from 'solid-js'
 import { doc, newConcert, resetDoc, setDoc } from '../lib/store'
 import { FORMATS } from '../lib/formats'
-import { TEMPLATES } from '../templates'
+import { TEMPLATES, templateById } from '../templates'
+import { fileToDataUrl } from '../lib/image'
 import type { Concert, Infographic, Kind } from '../types'
 import { Field, inputClass } from './Field'
 
-type TextKey = 'title' | 'subtitle' | 'venue' | 'ticketsUrl' | 'footer'
-type ConcertKey = Exclude<keyof Concert, 'id'>
+type TextKey = 'title' | 'subtitle' | 'venue' | 'ticketsUrl' | 'footer' | 'credit'
+type ConcertKey = Exclude<keyof Concert, 'id' | 'image'>
 
 export default function Editor() {
   const text = (key: TextKey, label: string) => (
@@ -25,6 +26,16 @@ export default function Editor() {
       />
     </Field>
   )
+
+  const chooseTemplate = (id: string) => {
+    setDoc('templateId', id)
+    setDoc('palette', { ...templateById(id).palette })
+  }
+
+  const setImage = async (index: number, file?: File) => {
+    if (!file) return
+    setDoc('concerts', index, 'image', await fileToDataUrl(file))
+  }
 
   const removeConcert = (id: string) => setDoc('concerts', (list) => list.filter((c) => c.id !== id))
 
@@ -47,7 +58,7 @@ export default function Editor() {
         </div>
         <div class="grid grid-cols-2 gap-3">
           <Field label="Plantilla">
-            <select class={inputClass} value={doc.templateId} onChange={(e) => setDoc('templateId', e.currentTarget.value)}>
+            <select class={inputClass} value={doc.templateId} onChange={(e) => chooseTemplate(e.currentTarget.value)}>
               <For each={TEMPLATES}>{(t) => <option value={t.id}>{t.label}</option>}</For>
             </select>
           </Field>
@@ -61,8 +72,8 @@ export default function Editor() {
             </select>
           </Field>
         </div>
-        <div class="grid grid-cols-3 gap-3">
-          <For each={[['bg', 'Fondo'], ['fg', 'Texto'], ['accent', 'Acento']] as const}>
+        <div class="grid grid-cols-4 gap-3">
+          <For each={[['bg', 'Fondo'], ['fg', 'Tinta'], ['accent', 'Acento'], ['accent2', 'Acento 2']] as const}>
             {([key, label]) => (
               <Field label={label}>
                 <input
@@ -86,6 +97,22 @@ export default function Editor() {
           {text('ticketsUrl', 'Entradas')}
           {text('footer', 'Pie / firma')}
         </div>
+        {text('credit', 'Crédito (arriba)')}
+      </section>
+
+      <section class="flex flex-col gap-3">
+        <h2 class="text-sm font-extrabold uppercase">Datos destacados</h2>
+        <div class="grid grid-cols-[90px_1fr] gap-3">
+          <Field label="Cifra">
+            <input class={inputClass} value={doc.highlight.big} onInput={(e) => setDoc('highlight', 'big', e.currentTarget.value)} />
+          </Field>
+          <Field label="Texto de la cifra">
+            <input class={inputClass} value={doc.highlight.text} onInput={(e) => setDoc('highlight', 'text', e.currentTarget.value)} />
+          </Field>
+        </div>
+        <Field label="Intro">
+          <textarea class={inputClass} rows={3} value={doc.intro} onInput={(e) => setDoc('intro', e.currentTarget.value)} />
+        </Field>
       </section>
 
       <section class="flex flex-col gap-3">
@@ -110,6 +137,24 @@ export default function Editor() {
               {concertField(i(), 'time', 'Hora', 'time')}
               {concertField(i(), 'price', 'Precio')}
               {concertField(i(), 'note', 'Nota')}
+              <Field label="Foto / portada (opcional)" class="col-span-2">
+                <div class="flex items-center gap-3">
+                  <Show when={c.image}>
+                    <img src={c.image} alt="" class="h-10 w-10 rounded object-cover" />
+                  </Show>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    class="min-w-0 flex-1 text-xs"
+                    onChange={(e) => setImage(i(), e.currentTarget.files?.[0])}
+                  />
+                  <Show when={c.image}>
+                    <button type="button" class="text-xs text-red-600" onClick={() => setDoc('concerts', i(), 'image', '')}>
+                      Quitar
+                    </button>
+                  </Show>
+                </div>
+              </Field>
               <Show when={doc.kind === 'cycle' && doc.concerts.length > 1}>
                 <button type="button" class="col-span-2 text-left text-xs text-red-600" onClick={() => removeConcert(c.id)}>
                   Eliminar

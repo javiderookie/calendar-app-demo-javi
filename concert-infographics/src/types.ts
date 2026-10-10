@@ -8,6 +8,7 @@ export interface Concert {
   venue: string
   price: string
   note: string
+  image: string // resized data URL, optional
 }
 
 export interface Infographic {
@@ -17,9 +18,12 @@ export interface Infographic {
   venue: string
   ticketsUrl: string
   footer: string
+  credit: string
+  intro: string
+  highlight: { big: string; text: string }
   formatId: FormatId
   templateId: string
-  palette: { bg: string; fg: string; accent: string }
+  palette: Palette
   concerts: Concert[]
 }
 
@@ -30,4 +34,11 @@ export interface Format {
   label: string
   width: number
   height: number
+}
+
+export interface Palette {
+  bg: string
+  fg: string
+  accent: string
+  accent2: string
 }
