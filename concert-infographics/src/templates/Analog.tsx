@@ -1,8 +1,9 @@
-import { createEffect, createSignal, For, on, onMount, Show } from 'solid-js'
+import { For, Show } from 'solid-js'
 import type { JSX } from 'solid-js'
 import type { TemplateProps } from '.'
 import type { Concert, Palette } from '../types'
 import { dateParts, longDate, sortByDate } from '../lib/dates'
+import { createAutoFit } from '../lib/autofit'
 
 // Retro risograph poster: cream paper with grain, four inks, mixed display type,
 // vinyl records as date markers. Inspired by vintage music infographics.
@@ -73,32 +74,13 @@ export default function Analog(props: TemplateProps) {
   const p = () => props.doc.palette
   const landscape = () => props.format.width > props.format.height
   // Shrinks everything when the content would overflow the canvas.
-  const [fit, setFit] = createSignal(1)
+  let frame!: HTMLDivElement
+  const fit = createAutoFit(() => frame, () => [JSON.stringify(props.doc), props.format.id])
   const base = () =>
     landscape()
       ? Math.min(props.format.width / 1920, props.format.height / 1000)
       : Math.min(props.format.width / 1080, props.format.height / 1400)
   const s = () => base() * fit()
-
-  let frame!: HTMLDivElement
-  const overflows = () =>
-    Array.from(frame.querySelectorAll<HTMLElement>('[data-fit]')).some((el) => el.scrollHeight > el.clientHeight + 1)
-  // Binary search for the largest fit factor that leaves nothing clipped.
-  const refit = () => {
-    setFit(1)
-    if (!overflows()) return
-    let lo = 0.3
-    let hi = 1
-    for (let i = 0; i < 9; i++) {
-      const mid = (lo + hi) / 2
-      setFit(mid)
-      if (overflows()) hi = mid
-      else lo = mid
-    }
-    setFit(lo)
-  }
-  onMount(() => document.fonts.ready.then(refit))
-  createEffect(on(() => [JSON.stringify(props.doc), props.format.id], () => queueMicrotask(refit), { defer: true }))
   const isCycle = () => props.doc.kind === 'cycle'
   const concerts = () => (isCycle() ? sortByDate(props.doc.concerts) : props.doc.concerts.slice(0, 1))
   const headline = () => (isCycle() ? props.doc.title : concerts()[0]?.artist || props.doc.title)

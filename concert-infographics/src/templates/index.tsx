@@ -4,6 +4,7 @@ import Bold from './Bold'
 import Minimal from './Minimal'
 import Analog from './Analog'
 import MapRoute from './MapRoute'
+import Iso from './Iso'
 
 export interface TemplateProps {
   doc: Infographic
@@ -32,6 +33,12 @@ export const TEMPLATES: Template[] = [
     label: 'Mapa (ruta por salas)',
     component: MapRoute,
     palette: { bg: '#f4ead8', fg: '#1f4e79', accent: '#c4513a', accent2: '#3f8f5a' },
+  },
+  {
+    id: 'iso',
+    label: 'Isométrico (recorrido 3D)',
+    component: Iso,
+    palette: { bg: '#4a55a0', fg: '#ffffff', accent: '#ef6f6c', accent2: '#f6d55c' },
   },
   {
     id: 'bold',
