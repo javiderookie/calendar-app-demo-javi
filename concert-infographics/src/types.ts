@@ -10,6 +10,7 @@ export interface Concert {
   note: string
   image: string // resized data URL, optional
   pin?: { x: number; y: number } // map position in %, optional
+  coords: string // "lat, lon" override for real maps, optional
 }
 
 export interface Infographic {

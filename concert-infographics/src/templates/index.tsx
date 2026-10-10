@@ -6,6 +6,7 @@ import Analog from './Analog'
 import MapRoute from './MapRoute'
 import Iso from './Iso'
 import Panal from './Panal'
+import MadridMap from './MadridMap'
 
 export interface TemplateProps {
   doc: Infographic
@@ -46,6 +47,12 @@ export const TEMPLATES: Template[] = [
     label: 'Panal (festival primavera)',
     component: Panal,
     palette: { bg: '#f7c936', fg: '#1d2a4d', accent: '#4f9be6', accent2: '#e8524a' },
+  },
+  {
+    id: 'madrid',
+    label: 'Mapa de Madrid (salas reales)',
+    component: MadridMap,
+    palette: { bg: '#fbf1d3', fg: '#1d2a4d', accent: '#d9881c', accent2: '#4f9be6' },
   },
   {
     id: 'bold',

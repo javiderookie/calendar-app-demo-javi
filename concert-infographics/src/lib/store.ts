@@ -14,6 +14,7 @@ export const newConcert = (partial: Partial<Concert> = {}): Concert => ({
   price: '',
   note: '',
   image: '',
+  coords: '',
   ...partial,
 })
 
@@ -73,7 +74,7 @@ export const persistDoc = () =>
   })
 
 // Bee Week Madrid, first line-up announcement (data from the festival poster).
-const beeWeek = (): Infographic => {
+const beeWeek = (templateId = 'bee'): Infographic => {
   const c = (artist: string, date: string, venue: string) => newConcert({ artist, date, venue, time: '' })
   return {
     kind: 'cycle',
@@ -88,8 +89,8 @@ const beeWeek = (): Infographic => {
     highlight: { big: '', text: '' },
     mapImage: '',
     formatId: 'portrait',
-    templateId: 'bee',
-    palette: { ...templateById('bee').palette },
+    templateId,
+    palette: { ...templateById(templateId).palette },
     concerts: [
       c('Oslo Ovnies', '2027-03-07', 'El Sol'),
       c('Holywater', '2027-03-12', 'Siroco'),
@@ -108,7 +109,8 @@ const beeWeek = (): Infographic => {
 
 export const PRESETS = [
   { id: 'demo', label: 'Noches de Jazz (demo)', build: sample },
-  { id: 'beeweek', label: 'Bee Week 2027', build: beeWeek },
+  { id: 'beeweek', label: 'Bee Week 2027 · cartel', build: () => beeWeek('bee') },
+  { id: 'beeweek-map', label: 'Bee Week 2027 · mapa de Madrid', build: () => beeWeek('madrid') },
 ]
 
 export const loadPreset = (id: string) => setDoc((PRESETS.find((p) => p.id === id) ?? PRESETS[0]).build())

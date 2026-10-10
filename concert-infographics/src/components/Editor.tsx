@@ -172,6 +172,9 @@ export default function Editor() {
               {concertField(i(), 'time', 'Hora', 'time')}
               {concertField(i(), 'price', 'Precio')}
               {concertField(i(), 'note', 'Nota')}
+              <Show when={doc.templateId === 'madrid'}>
+                <div class="col-span-2">{concertField(i(), 'coords', 'Coordenadas (lat, lon) si la sala no se reconoce')}</div>
+              </Show>
               <Field label="Foto / portada (opcional)" class="col-span-2">
                 <div class="flex items-center gap-3">
                   <Show when={c.image}>
