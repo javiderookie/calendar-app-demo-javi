@@ -93,6 +93,12 @@ export default function Editor() {
         {text('title', doc.kind === 'cycle' ? 'Nombre del ciclo' : 'Título (si no hay artista)')}
         {text('subtitle', 'Subtítulo / antetítulo')}
         {text('banner', 'Rótulo del cartel (p. ej. «Primer avance de cartel»)')}
+        <Field label="Fechas">
+          <select class={inputClass} value={doc.dateMode} onChange={(e) => setDoc('dateMode', e.currentTarget.value as 'day' | 'year')}>
+            <option value="day">Día y mes (conciertos)</option>
+            <option value="year">Solo año (discografías, historia)</option>
+          </select>
+        </Field>
         {text('venue', 'Sala / ciudad (separa etiquetas con «·»)')}
         <div class="grid grid-cols-2 gap-3">
           {text('ticketsUrl', 'Entradas')}

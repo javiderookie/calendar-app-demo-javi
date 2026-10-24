@@ -23,6 +23,7 @@ const sample = (): Infographic => ({
   title: 'Noches de Jazz',
   subtitle: 'Ciclo de otoño 2026',
   banner: 'El cartel',
+  dateMode: 'day',
   venue: 'Café Central · Madrid',
   ticketsUrl: 'tuweb-de-entradas.com',
   footer: 'notedetengas.es',
@@ -81,6 +82,7 @@ const beeWeek = (templateId = 'bee'): Infographic => {
     title: 'bee week',
     subtitle: 'Marzo - Abril',
     banner: 'Primer avance de cartel',
+    dateMode: 'day',
     venue: 'Madrid · Salas · Abejas · Conciertos',
     ticketsUrl: '',
     footer: '@beeweekfest',
@@ -107,10 +109,45 @@ const beeWeek = (templateId = 'bee'): Infographic => {
   }
 }
 
+// Los Punsetes discography. Release years from Wikipedia, Neo2, Indie Hoy and LaHiguera;
+// labels only where a source confirms them. The 2026 album is announced, not yet out.
+const punsetes = (): Infographic => {
+  const d = (artist: string, date: string, venue = '', note = '') => newConcert({ artist, date, venue, note, time: '' })
+  return {
+    kind: 'cycle',
+    title: 'Los Punsetes',
+    subtitle: 'Discografía 2008 – 2026',
+    banner: 'Pop, punk y mala leche',
+    dateMode: 'year',
+    venue: '',
+    ticketsUrl: '',
+    footer: 'notedetengas.es',
+    credit: 'Por Javi · notedetengas',
+    intro: 'Desde Madrid: siete discos de estudio, un tributo con 21 bandas por sus 20 años y un disco nuevo en camino.',
+    highlight: { big: '20', text: 'años de trayectoria' },
+    mapImage: '',
+    formatId: 'portrait',
+    templateId: 'zine',
+    palette: { ...templateById('zine').palette },
+    concerts: [
+      d('Los Punsetes', '2008-01-01', 'Gramaciones Grabofónicas', 'Debut con licencia Creative Commons'),
+      d('LP2', '2010-01-01', 'Everlasting', 'Producción de David Rodríguez'),
+      d('Una montaña es una montaña', '2012-01-01', 'Everlasting'),
+      d('LPIV', '2014-01-01'),
+      d('¡Viva!', '2017-03-10', '', 'Producido por El Guincho'),
+      d('Aniquilación', '2019-01-01', '', 'Sexto álbum'),
+      d('AFDTRQHOT', '2022-11-25', 'Sonido Muchacho', 'Al final del túnel resulta que hay otro túnel'),
+      d('Que le den por culo a tus amigos', '2024-01-01', 'Sonido Muchacho', 'Tributo: 21 bandas versionan sus canciones'),
+      d('Un río de angustia desbocada', '2026-11-13', 'Sonido Muchacho', 'Anunciado para el 13 de noviembre'),
+    ],
+  }
+}
+
 export const PRESETS = [
   { id: 'demo', label: 'Noches de Jazz (demo)', build: sample },
   { id: 'beeweek', label: 'Bee Week 2027 · cartel', build: () => beeWeek('bee') },
   { id: 'beeweek-map', label: 'Bee Week 2027 · mapa de Madrid', build: () => beeWeek('madrid') },
+  { id: 'punsetes', label: 'Los Punsetes · discografía', build: punsetes },
 ]
 
 export const loadPreset = (id: string) => setDoc((PRESETS.find((p) => p.id === id) ?? PRESETS[0]).build())

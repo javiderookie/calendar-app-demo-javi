@@ -18,6 +18,8 @@ export interface Infographic {
   title: string
   subtitle: string
   banner: string
+  /** 'year' for discographies and other year-only timelines. */
+  dateMode: 'day' | 'year'
   venue: string
   ticketsUrl: string
   footer: string

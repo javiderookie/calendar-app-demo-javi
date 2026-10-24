@@ -12,6 +12,7 @@ import Bubbles from './Bubbles'
 import Cables from './Cables'
 import Chronicle from './Chronicle'
 import Mix from './Mix'
+import Zine from './Zine'
 
 export interface TemplateProps {
   doc: Infographic
@@ -88,6 +89,12 @@ export const TEMPLATES: Template[] = [
     label: 'Mezcla (manual de DJ)',
     component: Mix,
     palette: { bg: '#c3cfd9', fg: '#1d1d1f', accent: '#f1e6d6', accent2: '#c99a90' },
+  },
+  {
+    id: 'zine',
+    label: 'Fanzine (collage punk)',
+    component: Zine,
+    palette: { bg: '#111111', fg: '#f4efe6', accent: '#ff2e93', accent2: '#f6e600' },
   },
   {
     id: 'bold',
