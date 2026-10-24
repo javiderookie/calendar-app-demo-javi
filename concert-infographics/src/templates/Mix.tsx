@@ -1,7 +1,8 @@
 import { For, Index, Show } from 'solid-js'
 import type { TemplateProps } from '.'
-import { dotDate, sortByDate, weekdayIndex } from '../lib/dates'
+import { sortByDate, weekdayIndex } from '../lib/dates'
 import { venueName } from '../lib/groups'
+import { fmtWhen } from '../lib/infoTypes'
 import { createAutoFit } from '../lib/autofit'
 
 // DJ-manual style: dusty blue paper with pale mountains, italic "The art of" over a bold
@@ -114,7 +115,7 @@ export default function Mix(props: TemplateProps) {
           <p class="uppercase" style={{ 'font-weight': 700, 'font-size': px(28), 'line-height': 1.05, 'max-width': px(200) }}>
             {firstShow()?.artist || '—'}
           </p>
-          <p style={{ 'font-size': px(18) }}>{dotDate(firstShow()?.date ?? '')}</p>
+          <p style={{ 'font-size': px(18) }}>{(firstShow() ? fmtWhen(props.doc, firstShow()!, 0) : '')}</p>
         </div>
       </div>
       <div class="flex flex-col items-center" style={{ gap: px(6) }}>
@@ -138,7 +139,7 @@ export default function Mix(props: TemplateProps) {
           <p class="uppercase" style={{ 'font-weight': 700, 'font-size': px(28), 'line-height': 1.05, 'max-width': px(200) }}>
             {(isCycle() ? lastShow()?.artist : venueName(firstShow() ?? ({} as never), props.doc.venue)) || '—'}
           </p>
-          <p style={{ 'font-size': px(18) }}>{isCycle() ? dotDate(lastShow()?.date ?? '') : firstShow()?.time}</p>
+          <p style={{ 'font-size': px(18) }}>{isCycle() ? (lastShow() ? fmtWhen(props.doc, lastShow()!, concerts().length - 1) : '') : firstShow()?.time}</p>
         </div>
       </div>
     </section>
@@ -159,7 +160,7 @@ export default function Mix(props: TemplateProps) {
             {c.artist || 'Artista'}
           </p>
           <p class="truncate" style={{ 'font-family': FONT.mono, 'font-size': px(15 * k()), color: p().fg, opacity: 0.8 }}>
-            {[dotDate(c.date), venueName(c, props.doc.venue), c.time && `${c.time} h`, c.price].filter(Boolean).join(' · ')}
+            {[fmtWhen(props.doc, c, n - 1), venueName(c, props.doc.venue), c.time && `${c.time} h`, c.price].filter(Boolean).join(' · ')}
           </p>
         </div>
         <div class="flex shrink-0" style={{ gap: px(4 * k()) }}>

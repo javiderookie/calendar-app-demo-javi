@@ -18,8 +18,8 @@ export interface Infographic {
   title: string
   subtitle: string
   banner: string
-  /** 'year' for discographies and other year-only timelines. */
-  dateMode: 'day' | 'year'
+  /** What the infographic is about; drives editor fields and template wording. */
+  infoType: import('./lib/infoTypes').InfoType
   venue: string
   ticketsUrl: string
   footer: string

@@ -2,6 +2,7 @@ import { createStore } from 'solid-js/store'
 import { createEffect } from 'solid-js'
 import type { Concert, Infographic } from '../types'
 import { templateById } from '../templates'
+import { INFO_TYPES, type InfoType } from './infoTypes'
 
 const STORAGE_KEY = 'concert-infographics:draft'
 
@@ -23,7 +24,7 @@ const sample = (): Infographic => ({
   title: 'Noches de Jazz',
   subtitle: 'Ciclo de otoño 2026',
   banner: 'El cartel',
-  dateMode: 'day',
+  infoType: 'cycle',
   venue: 'Café Central · Madrid',
   ticketsUrl: 'tuweb-de-entradas.com',
   footer: 'notedetengas.es',
@@ -47,7 +48,10 @@ const load = (): Infographic => {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) {
       const base = sample()
-      const saved = JSON.parse(raw) as Partial<Infographic>
+      const saved = JSON.parse(raw) as Partial<Infographic> & { dateMode?: string }
+      // Drafts from before infoType existed: year-only dates meant a discography.
+      if (!saved.infoType) saved.infoType = saved.dateMode === 'year' ? 'discography' : 'cycle'
+      delete saved.dateMode
       return {
         ...base,
         ...saved,
@@ -82,7 +86,7 @@ const beeWeek = (templateId = 'bee'): Infographic => {
     title: 'bee week',
     subtitle: 'Marzo - Abril',
     banner: 'Primer avance de cartel',
-    dateMode: 'day',
+    infoType: 'cycle',
     venue: 'Madrid · Salas · Abejas · Conciertos',
     ticketsUrl: '',
     footer: '@beeweekfest',
@@ -118,7 +122,7 @@ const punsetes = (): Infographic => {
     title: 'Los Punsetes',
     subtitle: 'Discografía 2008 – 2026',
     banner: 'Pop, punk y mala leche',
-    dateMode: 'year',
+    infoType: 'discography',
     venue: '',
     ticketsUrl: '',
     footer: 'notedetengas.es',
@@ -140,6 +144,27 @@ const punsetes = (): Infographic => {
       d('Que le den por culo a tus amigos', '2024-01-01', 'Sonido Muchacho', 'Tributo: 21 bandas versionan sus canciones'),
       d('Un río de angustia desbocada', '2026-11-13', 'Sonido Muchacho', 'Anunciado para el 13 de noviembre'),
     ],
+  }
+}
+
+/** A blank draft for the given type, so we can start building from scratch. */
+export const blankDoc = (type: InfoType): Infographic => {
+  const cfg = INFO_TYPES.find((t) => t.id === type) ?? INFO_TYPES[0]
+  const templateId = cfg.templates[0]
+  return {
+    ...sample(),
+    infoType: type,
+    kind: 'cycle',
+    title: '',
+    subtitle: '',
+    banner: '',
+    venue: '',
+    ticketsUrl: '',
+    intro: '',
+    highlight: { big: '', text: '' },
+    templateId,
+    palette: { ...templateById(templateId).palette },
+    concerts: [newConcert({ time: '' }), newConcert({ time: '' }), newConcert({ time: '' })],
   }
 }
 

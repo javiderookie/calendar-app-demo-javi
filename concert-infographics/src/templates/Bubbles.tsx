@@ -1,7 +1,8 @@
 import { For, Show } from 'solid-js'
 import type { TemplateProps } from '.'
-import { dateParts, dotDate, monthName, sortByDate, spanDays, yearOf } from '../lib/dates'
+import { dateParts, monthName, sortByDate, spanDays, yearOf } from '../lib/dates'
 import { groupByVenue, groupByWeek, plural, venueName } from '../lib/groups'
+import { fmtWhen } from '../lib/infoTypes'
 import { createAutoFit } from '../lib/autofit'
 
 // Tour-history style: two-tone title, duotone photo row, a striped central axis with
@@ -128,7 +129,7 @@ export default function Bubbles(props: TemplateProps) {
       <For each={lp.items}>
         {(c) => (
           <p class="truncate" style={{ 'font-family': FONT.body, 'font-size': px(17), color: '#444', 'line-height': 1.35 }}>
-            <b style={{ color: p().accent }}>{dotDate(c.date)}</b> {c.artist} · {venueName(c, props.doc.venue)}
+            <b style={{ color: p().accent }}>{fmtWhen(props.doc, c, concerts().indexOf(c))}</b> {[c.artist, venueName(c, props.doc.venue)].filter(Boolean).join(' · ')}
           </p>
         )}
       </For>

@@ -1,13 +1,15 @@
 import type { Concert } from '../types'
 import { monthName, weekStart, yearOf } from './dates'
 
-export const venueName = (c: Concert, fallback: string) => c.venue || fallback.split('·')[0]?.trim() || 'Sin sala'
+/** The entry's venue/label/director, or '' when neither it nor the doc-level fallback has one. */
+export const venueName = (c: Concert, fallback: string) => c.venue || fallback.split('·')[0]?.trim() || ''
 
 /** Venues with their shows, ordered by first appearance (input should be date-sorted). */
 export function groupByVenue(concerts: Concert[], fallback: string) {
   const map = new Map<string, Concert[]>()
   for (const c of concerts) {
     const v = venueName(c, fallback)
+    if (!v) continue
     map.set(v, [...(map.get(v) ?? []), c])
   }
   return [...map.entries()].map(([venue, items]) => ({ venue, items }))

@@ -1,7 +1,8 @@
 import { For, Show } from 'solid-js'
 import type { TemplateProps } from '.'
-import { dotDate, sortByDate, yearOf } from '../lib/dates'
+import { sortByDate, yearOf } from '../lib/dates'
 import { groupByVenue, venueName } from '../lib/groups'
+import { fmtWhen, infoTypeOf } from '../lib/infoTypes'
 import { createAutoFit } from '../lib/autofit'
 
 // Chronicle style: brand pill, "THE HISTORY OF" stacked beside a huge last word on a
@@ -96,7 +97,7 @@ export default function Chronicle(props: TemplateProps) {
             'line-height': 1.25,
           }}
         >
-          {dotDate(c.date) || '--.--'}
+          {fmtWhen(props.doc, c, concerts().indexOf(c)) || '--.--'}
         </span>
         <Show when={c.image}>
           <img src={c.image} alt="" class="shrink-0 object-cover" style={{ width: px(76 * k()), height: px(76 * k()), filter: 'grayscale(0.4)' }} />
@@ -115,7 +116,9 @@ export default function Chronicle(props: TemplateProps) {
               'justify-content': side === 'left' ? 'flex-end' : 'flex-start',
             }}
           >
-            <Badge venue={venue} size={22 * k()} />
+            <Show when={venue}>
+              <Badge venue={venue} size={22 * k()} />
+            </Show>
             <span class="truncate">{[venue, c.time && `${c.time} h`, c.price].filter(Boolean).join(' · ')}</span>
           </p>
         </div>
@@ -169,7 +172,7 @@ export default function Chronicle(props: TemplateProps) {
         </For>
       </div>
       <p class="text-center uppercase" style={{ 'font-family': FONT.sans, 'font-size': px(17), color: p().fg, opacity: 0.75, 'letter-spacing': '0.06em' }}>
-        {[props.doc.intro, props.doc.ticketsUrl && `Entradas · ${props.doc.ticketsUrl}`, props.doc.credit, yearOf(concerts()[0]?.date ?? '')]
+        {[props.doc.intro, props.doc.ticketsUrl && `Entradas · ${props.doc.ticketsUrl}`, props.doc.credit, infoTypeOf(props.doc).dateMode === 'day' && yearOf(concerts()[0]?.date ?? '')]
           .filter(Boolean)
           .join('  ·  ')}
       </p>

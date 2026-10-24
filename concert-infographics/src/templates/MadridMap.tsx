@@ -1,7 +1,8 @@
 import { createSignal, For, onCleanup, onMount, Show } from 'solid-js'
 import type { TemplateProps } from '.'
 import type { Concert } from '../types'
-import { dotDate, sortByDate, spanDays } from '../lib/dates'
+import { sortByDate, spanDays } from '../lib/dates'
+import { fmtWhen } from '../lib/infoTypes'
 import { locateVenue } from '../lib/venues'
 
 // Real-geography Madrid map: one pin per venue at its actual location, callout cards
@@ -339,7 +340,7 @@ export default function MadridMap(props: TemplateProps) {
           <For each={c.st.concerts}>
             {(cc) => (
               <p class="truncate" style={{ 'font-family': FONT.label, 'font-size': px(18 * ls()), color: '#333', 'line-height': `${24 * s() * ls()}px` }}>
-                <span style={{ color: c.st.color, 'font-weight': 700 }}>{dotDate(cc.date)}</span> {cc.artist}
+                <span style={{ color: c.st.color, 'font-weight': 700 }}>{fmtWhen(props.doc, cc)}</span> {cc.artist}
                 <Show when={cc.time}> · {cc.time}</Show>
               </p>
             )}

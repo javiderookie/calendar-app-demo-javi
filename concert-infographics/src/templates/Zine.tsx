@@ -1,7 +1,8 @@
-import { For, Index, Show } from 'solid-js'
+import { createEffect, createSignal, For, Index, on, onMount, Show } from 'solid-js'
 import type { TemplateProps } from '.'
 import type { Concert } from '../types'
-import { dotDate, sortByDate, spanDays, yearOf } from '../lib/dates'
+import { sortByDate, spanDays, yearOf } from '../lib/dates'
+import { fmtWhen, infoTypeOf, noun } from '../lib/infoTypes'
 import { groupByVenue, plural } from '../lib/groups'
 import { createAutoFit } from '../lib/autofit'
 
@@ -71,21 +72,34 @@ function Ransom(props: { text: string; size: number; colors: string[]; seed?: nu
         })),
       )
   }
+  // Measure the widest word and shrink just enough for it to fit the column.
+  let box!: HTMLSpanElement
+  const [k, setK] = createSignal(1)
+  const refit = () => {
+    setK(1)
+    const avail = box.parentElement?.clientWidth ?? 0
+    const widest = Math.max(0, ...Array.from(box.children, (w) => (w as HTMLElement).offsetWidth))
+    if (avail && widest > avail) setK(avail / widest)
+  }
+  onMount(() => document.fonts.ready.then(refit))
+  createEffect(on(() => [props.text, props.size], () => queueMicrotask(refit), { defer: true }))
+  const size = () => props.size * k()
+
   return (
-    <span class="inline-flex flex-wrap items-end justify-end" style={{ gap: `${props.size * 0.06}px ${props.size * 0.3}px`, 'line-height': 1 }}>
+    <span ref={box} class="inline-flex flex-wrap items-end justify-end" style={{ gap: `${size() * 0.06}px ${size() * 0.3}px`, 'line-height': 1 }}>
       <For each={words()}>
         {(letters) => (
-          <span class="inline-flex flex-nowrap items-end" style={{ gap: `${props.size * 0.04}px` }}>
+          <span class="inline-flex shrink-0 flex-nowrap items-end" style={{ gap: `${size() * 0.04}px` }}>
             <For each={letters}>
               {(l) => (
                 <span
                   style={{
                     'font-family': l.font,
-                    'font-size': `${props.size * l.scale}px`,
+                    'font-size': `${size() * l.scale}px`,
                     background: l.bg,
                     color: l.bg === 'transparent' ? props.colors[0] : '#111',
                     transform: `rotate(${l.rot}deg)`,
-                    padding: `0 ${props.size * 0.06}px`,
+                    padding: `0 ${size() * 0.06}px`,
                     display: 'inline-block',
                     'text-transform': 'uppercase',
                   }}
@@ -135,18 +149,29 @@ export default function Zine(props: TemplateProps) {
     fit()
   const px = (n: number) => `${n * s()}px`
 
-  const yearMode = () => props.doc.dateMode === 'year'
+  const cfg = () => infoTypeOf(props.doc)
+  const yearMode = () => cfg().dateMode === 'year'
   const isCycle = () => props.doc.kind === 'cycle'
-  const items = () => (isCycle() ? sortByDate(props.doc.concerts) : props.doc.concerts.slice(0, 1))
-  const when = (c: Concert) => (yearMode() ? yearOf(c.date) : dotDate(c.date))
+  const items = () =>
+    isCycle() ? (cfg().keepOrder ? [...props.doc.concerts] : sortByDate(props.doc.concerts)) : props.doc.concerts.slice(0, 1)
+  const when = (c: Concert) => fmtWhen(props.doc, c, items().indexOf(c))
+  // Album runtime: sum of "m:ss" durations.
+  const runtime = () => {
+    const secs = items().reduce((sum, c) => {
+      const m = c.time.match(/^(\d+):(\d{1,2})$/)
+      return m ? sum + Number(m[1]) * 60 + Number(m[2]) : sum
+    }, 0)
+    return secs ? Math.round(secs / 60) : 0
+  }
   const upcoming = (c: Concert) => !!c.date && c.date > TODAY
   const groups = () => groupByVenue(items().filter((c) => c.venue), '').filter((g) => g.venue)
   const maxGroup = () => Math.max(1, ...groups().map((g) => g.items.length))
-  const words = () =>
-    yearMode()
-      ? { item: 'disco', group: 'sello', groupTitle: 'Sellos', listTitle: 'Discografía' }
-      : { item: 'concierto', group: 'sala', groupTitle: 'Salas', listTitle: 'El cartel' }
+  const words = () => ({
+    groupTitle: cfg().group ? cfg().group!.many.charAt(0).toUpperCase() + cfg().group!.many.slice(1) : '',
+    listTitle: cfg().listTitle,
+  })
   const span = () => {
+    if (cfg().dateMode === 'none') return runtime() ? [String(runtime()), 'minutos'] : undefined
     const dates = items().map((c) => c.date).filter(Boolean)
     if (!dates.length) return undefined
     if (yearMode()) {
@@ -159,8 +184,8 @@ export default function Zine(props: TemplateProps) {
   }
   const figures = () =>
     [
-      [String(items().length), plural(items().length, words().item)],
-      groups().length ? [String(groups().length), plural(groups().length, words().group)] : undefined,
+      [String(items().length), noun(cfg().item, items().length)],
+      groups().length && cfg().group ? [String(groups().length), noun(cfg().group!, groups().length)] : undefined,
       span(),
     ].filter(Boolean) as string[][]
   const headline = () => (isCycle() ? props.doc.title : items()[0]?.artist || props.doc.title)
@@ -169,7 +194,7 @@ export default function Zine(props: TemplateProps) {
   const ransomSize = () => {
     const column = landscape() ? 700 : 430
     const longest = Math.max(1, ...headline().split(/\s+/).map((w) => w.length))
-    return Math.min(124, column / (longest * 0.64))
+    return Math.min(124, column / (longest * 0.62))
   }
 
   const Label = (lp: { children: string; color?: string }) => (
@@ -197,7 +222,7 @@ export default function Zine(props: TemplateProps) {
                       transform: `rotate(${(c.artist.length % 5) - 2}deg)`,
                     }}
                   >
-                    <span style={{ 'font-family': FONT.heavy, 'font-size': px(20), color: '#111' }}>{when(c).slice(-2)}</span>
+                    <span style={{ 'font-family': FONT.heavy, 'font-size': px(20), color: '#111' }}>{yearMode() ? when(c).slice(-2) : when(c).slice(0, 5)}</span>
                   </div>
                 }
               >
@@ -208,7 +233,7 @@ export default function Zine(props: TemplateProps) {
                   {c.artist || 'Sin título'}
                 </p>
                 <p class="truncate" style={{ 'font-family': FONT.type, 'font-size': px(16), color: upcoming(c) ? p().accent : p().accent2 }}>
-                  {[when(c), c.venue, !yearMode() && c.time && `${c.time} h`, c.note].filter(Boolean).join(' · ')}
+                  {[when(c), c.venue, c.time && (cfg().timeInput === 'time' ? `${c.time} h` : c.time), c.price, c.note].filter(Boolean).join(' · ')}
                 </p>
               </div>
             </li>
@@ -310,7 +335,7 @@ export default function Zine(props: TemplateProps) {
                 stroke="#111"
                 textColor="#111"
               >
-                {yearMode() ? yearOf(c().date) : dotDate(c().date)}
+                {when(c())}
               </Pick>
               <span
                 class="w-full overflow-hidden"

@@ -1,7 +1,8 @@
 import { For, Show } from 'solid-js'
 import type { TemplateProps } from '.'
 import { dateParts, sortByDate, spanDays } from '../lib/dates'
-import { groupByVenue, plural, venueName } from '../lib/groups'
+import { groupByVenue, venueName } from '../lib/groups'
+import { fmtWhen, infoTypeOf, noun } from '../lib/infoTypes'
 import { createAutoFit } from '../lib/autofit'
 import { shade } from '../lib/color'
 
@@ -45,8 +46,9 @@ export default function Cables(props: TemplateProps) {
   const px = (n: number) => `${n * s()}px`
 
   const isCycle = () => props.doc.kind === 'cycle'
-  const concerts = () => (isCycle() ? sortByDate(props.doc.concerts) : props.doc.concerts.slice(0, 1))
+  const concerts = () => (isCycle() ? (infoTypeOf(props.doc).keepOrder ? [...props.doc.concerts] : sortByDate(props.doc.concerts)) : props.doc.concerts.slice(0, 1))
   const venues = () => groupByVenue(concerts(), props.doc.venue)
+  const cfg = () => infoTypeOf(props.doc)
   const headline = () => (isCycle() ? props.doc.title : concerts()[0]?.artist || props.doc.title)
   const twoCols = () => concerts().length > (landscape() ? 5 : 9)
   const k = () => Math.max(0.62, Math.min(1.25, 7 / Math.max(concerts().length / (twoCols() ? 2 : 1), 1)))
@@ -93,10 +95,17 @@ export default function Cables(props: TemplateProps) {
             'box-shadow': `inset ${px(5)} 0 0 ${shade(p().fg, 1.2)}`,
           }}
         >
-          <span style={{ 'font-family': FONT.round, 'font-weight': 700, 'font-size': px(36 * k()) }}>{d().day}</span>
-          <span class="uppercase" style={{ 'font-family': FONT.round, 'font-weight': 600, 'font-size': px(18 * k()) }}>
-            {d().month}
-          </span>
+          <Show
+            when={cfg().dateMode === 'day'}
+            fallback={
+              <span style={{ 'font-family': FONT.round, 'font-weight': 700, 'font-size': px(30 * k()) }}>{fmtWhen(props.doc, c, concerts().indexOf(c))}</span>
+            }
+          >
+            <span style={{ 'font-family': FONT.round, 'font-weight': 700, 'font-size': px(36 * k()) }}>{d().day}</span>
+            <span class="uppercase" style={{ 'font-family': FONT.round, 'font-weight': 600, 'font-size': px(18 * k()) }}>
+              {d().month}
+            </span>
+          </Show>
         </div>
         <div class="flex min-w-0 flex-1 items-center" style={{ gap: px(16 * k()), background: p().bg, 'border-radius': px(14), padding: `${px(8 * k())} ${px(14)}`, 'box-shadow': `0 ${px(2)} ${px(6)} rgba(0,0,0,0.12)` }}>
           <Show
@@ -119,7 +128,7 @@ export default function Cables(props: TemplateProps) {
               {c.artist || 'Artista'}
             </p>
             <p class="truncate" style={{ 'font-family': FONT.body, 'font-size': px(17 * k()), color: shade(p().fg, 1.6) }}>
-              {[venueName(c, props.doc.venue), c.time && `${c.time} h`, c.price, c.note].filter(Boolean).join(' · ')}
+              {[cfg().group ? venueName(c, props.doc.venue) : '', c.time && (cfg().timeInput === 'time' ? `${c.time} h` : c.time), c.price, c.note].filter(Boolean).join(' · ')}
             </p>
           </div>
         </div>
@@ -164,9 +173,9 @@ export default function Cables(props: TemplateProps) {
       <div class="flex" style={{ gap: px(26) }}>
         <For
           each={[
-            [String(concerts().length), plural(concerts().length, 'concierto')],
-            [String(venues().length), plural(venues().length, 'sala')],
-            ...(spanDays(concerts().map((c) => c.date)) > 1 ? [[String(spanDays(concerts().map((c) => c.date))), 'días']] : []),
+            [String(concerts().length), noun(cfg().item, concerts().length)],
+            ...(cfg().group ? [[String(venues().length), noun(cfg().group!, venues().length)]] : []),
+            ...(cfg().dateMode === 'day' && spanDays(concerts().map((c) => c.date)) > 1 ? [[String(spanDays(concerts().map((c) => c.date))), 'días']] : []),
           ]}
         >
           {([v, l], i) => (

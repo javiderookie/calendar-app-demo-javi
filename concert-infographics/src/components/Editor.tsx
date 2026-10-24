@@ -1,5 +1,6 @@
 import { For, Show } from 'solid-js'
-import { doc, loadPreset, newConcert, PRESETS, setDoc } from '../lib/store'
+import { blankDoc, doc, loadPreset, newConcert, PRESETS, setDoc } from '../lib/store'
+import { INFO_TYPES, infoTypeOf, type InfoType } from '../lib/infoTypes'
 import { FORMATS } from '../lib/formats'
 import { TEMPLATES, templateById } from '../templates'
 import { fileToDataUrl } from '../lib/image'
@@ -37,11 +38,54 @@ export default function Editor() {
     setDoc('concerts', index, 'image', await fileToDataUrl(file))
   }
 
+  const cfg = () => infoTypeOf(doc)
+
+  const chooseType = (type: InfoType) => {
+    const next = INFO_TYPES.find((t) => t.id === type)!
+    setDoc('infoType', type)
+    if (type !== 'cycle') setDoc('kind', 'cycle')
+    if (!next.templates.includes(doc.templateId)) chooseTemplate(next.templates[0])
+  }
+
+  const startBlank = () => {
+    if (confirm(`Empezar una ${cfg().label.toLowerCase()} en blanco? Se sustituye el borrador actual.`)) setDoc(blankDoc(doc.infoType))
+  }
+
+  const recommended = () => TEMPLATES.filter((t) => cfg().templates.includes(t.id)).sort((a, b) => cfg().templates.indexOf(a.id) - cfg().templates.indexOf(b.id))
+  const others = () => TEMPLATES.filter((t) => !cfg().templates.includes(t.id))
+
   const removeConcert = (id: string) => setDoc('concerts', (list) => list.filter((c) => c.id !== id))
 
   return (
     <div class="flex flex-col gap-6">
       <section class="flex flex-col gap-3">
+        <h2 class="text-sm font-extrabold uppercase">1 · ¿Qué infografía quieres?</h2>
+        <div class="grid grid-cols-2 gap-2">
+          <For each={INFO_TYPES}>
+            {(t) => (
+              <button
+                type="button"
+                class="flex items-start gap-2 rounded-lg border bg-white p-2 text-left"
+                classList={{ 'border-orange-600 ring-2 ring-orange-600/30': doc.infoType === t.id, 'border-neutral-200': doc.infoType !== t.id }}
+                onClick={() => chooseType(t.id)}
+              >
+                <span class="text-xl leading-none">{t.icon}</span>
+                <span>
+                  <span class="block text-sm font-bold">{t.label}</span>
+                  <span class="block text-xs text-neutral-500">{t.hint}</span>
+                </span>
+              </button>
+            )}
+          </For>
+        </div>
+        <button type="button" class="self-start text-xs text-neutral-600 underline" onClick={startBlank}>
+          Empezar {cfg().label.toLowerCase()} en blanco
+        </button>
+      </section>
+
+      <section class="flex flex-col gap-3">
+        <h2 class="text-sm font-extrabold uppercase">2 · Diseño</h2>
+        <Show when={doc.infoType === 'cycle'}>
         <div class="grid grid-cols-2 gap-1 rounded-lg bg-neutral-200 p-1 text-sm font-semibold">
           <For each={[['single', 'Concierto'], ['cycle', 'Ciclo'] ] as [Kind, string][]}>
             {([kind, label]) => (
@@ -56,10 +100,16 @@ export default function Editor() {
             )}
           </For>
         </div>
+        </Show>
         <div class="grid grid-cols-2 gap-3">
           <Field label="Plantilla">
             <select class={inputClass} value={doc.templateId} onChange={(e) => chooseTemplate(e.currentTarget.value)}>
-              <For each={TEMPLATES}>{(t) => <option value={t.id}>{t.label}</option>}</For>
+              <optgroup label={`Recomendadas · ${cfg().label}`}>
+                <For each={recommended()}>{(t) => <option value={t.id}>{t.label}</option>}</For>
+              </optgroup>
+              <optgroup label="Otras">
+                <For each={others()}>{(t) => <option value={t.id}>{t.label}</option>}</For>
+              </optgroup>
             </select>
           </Field>
           <Field label="Formato">
@@ -89,17 +139,11 @@ export default function Editor() {
       </section>
 
       <section class="flex flex-col gap-3">
-        <h2 class="text-sm font-extrabold uppercase">Cabecera</h2>
-        {text('title', doc.kind === 'cycle' ? 'Nombre del ciclo' : 'Título (si no hay artista)')}
-        {text('subtitle', 'Subtítulo / antetítulo')}
-        {text('banner', 'Rótulo del cartel (p. ej. «Primer avance de cartel»)')}
-        <Field label="Fechas">
-          <select class={inputClass} value={doc.dateMode} onChange={(e) => setDoc('dateMode', e.currentTarget.value as 'day' | 'year')}>
-            <option value="day">Día y mes (conciertos)</option>
-            <option value="year">Solo año (discografías, historia)</option>
-          </select>
-        </Field>
-        {text('venue', 'Sala / ciudad (separa etiquetas con «·»)')}
+        <h2 class="text-sm font-extrabold uppercase">3 · Cabecera</h2>
+        {text('title', doc.kind === 'single' ? 'Título (si no hay artista)' : cfg().subject)}
+        {text('subtitle', `Subtítulo · ${cfg().subtitleHint}`)}
+        {text('banner', 'Rótulo (p. ej. «Primer avance de cartel», «Pop, punk y mala leche»)')}
+        {text('venue', doc.infoType === 'cycle' || doc.infoType === 'filmcycle' ? 'Sede / ciudad (separa etiquetas con «·»)' : 'Etiquetas (separa con «·»)')}
         <div class="grid grid-cols-2 gap-3">
           {text('ticketsUrl', 'Entradas')}
           {text('footer', 'Pie / firma')}
@@ -158,26 +202,26 @@ export default function Editor() {
 
       <section class="flex flex-col gap-3">
         <div class="flex items-center justify-between">
-          <h2 class="text-sm font-extrabold uppercase">{doc.kind === 'cycle' ? 'Conciertos' : 'Concierto'}</h2>
+          <h2 class="text-sm font-extrabold uppercase">4 · {doc.kind === 'cycle' ? cfg().listTitle : 'Concierto'}</h2>
           <Show when={doc.kind === 'cycle'}>
             <button
               type="button"
               class="rounded-md bg-neutral-900 px-3 py-1 text-sm font-semibold text-white"
-              onClick={() => setDoc('concerts', doc.concerts.length, newConcert())}
+              onClick={() => setDoc('concerts', doc.concerts.length, newConcert({ time: '' }))}
             >
-              + Añadir
+              + Añadir {cfg().item.one}
             </button>
           </Show>
         </div>
         <For each={doc.kind === 'cycle' ? doc.concerts : doc.concerts.slice(0, 1)}>
           {(c, i) => (
             <div class="grid grid-cols-2 gap-3 rounded-lg border border-neutral-200 bg-white p-3">
-              {concertField(i(), 'artist', 'Artista')}
-              {concertField(i(), 'venue', 'Sala (opcional)')}
-              {concertField(i(), 'date', 'Fecha', 'date')}
-              {concertField(i(), 'time', 'Hora', 'time')}
-              {concertField(i(), 'price', 'Precio')}
-              {concertField(i(), 'note', 'Nota')}
+              {concertField(i(), 'artist', cfg().fields.artist)}
+              <Show when={cfg().fields.venue}>{(label) => concertField(i(), 'venue', label())}</Show>
+              <Show when={cfg().fields.date}>{(label) => concertField(i(), 'date', label(), 'date')}</Show>
+              <Show when={cfg().fields.time}>{(label) => concertField(i(), 'time', label(), cfg().timeInput)}</Show>
+              <Show when={cfg().fields.price}>{(label) => concertField(i(), 'price', label())}</Show>
+              {concertField(i(), 'note', cfg().fields.note)}
               <Show when={doc.templateId === 'madrid'}>
                 <div class="col-span-2">{concertField(i(), 'coords', 'Coordenadas (lat, lon) si la sala no se reconoce')}</div>
               </Show>

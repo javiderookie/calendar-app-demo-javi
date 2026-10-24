@@ -17,7 +17,8 @@ export const dateParts = (iso: string) => {
 }
 
 export const sortByDate = <T extends { date: string; time: string }>(items: T[]) =>
-  [...items].sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`))
+  // Undated lists (tracklists) keep the order they were entered in.
+  items.some((i) => i.date) ? [...items].sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`)) : [...items]
 
 const LONG = new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
 

@@ -1,7 +1,8 @@
 import { For, Show } from 'solid-js'
 import type { TemplateProps } from '.'
 import type { Concert } from '../types'
-import { dotDate, sortByDate, spanDays } from '../lib/dates'
+import { sortByDate, spanDays } from '../lib/dates'
+import { fmtWhen, infoTypeOf, noun } from '../lib/infoTypes'
 import { createAutoFit } from '../lib/autofit'
 import { shade, textOn } from '../lib/color'
 
@@ -213,7 +214,7 @@ export default function Panal(props: TemplateProps) {
       >
         {isCycle() ? c.artist || 'Artista' : [c.time && `${c.time} h`, c.price].filter(Boolean).join(' · ') || 'En directo'}
       </span>
-      <Pill text={dotDate(c.date) || '--.--'} color={venueColor(c)} size={26 * k()} />
+      <Pill text={fmtWhen(props.doc, c, concerts().indexOf(c)) || '--.--'} color={venueColor(c)} size={26 * k()} />
       <span class="min-w-0">
         <Show when={venueOf(c)}>
           <Pill text={venueOf(c)} color={venueColor(c)} size={26 * k()} />
@@ -225,8 +226,8 @@ export default function Panal(props: TemplateProps) {
   const Stats = () => (
     <Show when={isCycle() && concerts().length > 1}>
       <div class="flex justify-center" style={{ gap: px(18) }}>
-        <StatHex value={String(concerts().length)} label="conciertos" size={118 * s()} fg={HONEY} bg={NAVY} />
-        <StatHex value={String(venues().length)} label="salas" size={118 * s()} fg={NAVY} bg="#ffffff" />
+        <StatHex value={String(concerts().length)} label={noun(infoTypeOf(props.doc).item, concerts().length)} size={118 * s()} fg={HONEY} bg={NAVY} />
+        <StatHex value={String(venues().length)} label={noun(infoTypeOf(props.doc).group ?? { one: 'sala', many: 'salas' }, venues().length)} size={118 * s()} fg={NAVY} bg="#ffffff" />
         <Show when={spanDays(concerts().map((c) => c.date)) > 1}>
           <StatHex value={String(spanDays(concerts().map((c) => c.date)))} label="días" size={118 * s()} fg="#ffffff" bg={p().accent2} />
         </Show>

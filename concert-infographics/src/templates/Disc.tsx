@@ -1,7 +1,8 @@
 import { For, Show } from 'solid-js'
 import type { TemplateProps } from '.'
-import { dateParts, dotDate, sortByDate, spanDays } from '../lib/dates'
-import { groupByMonth, groupByVenue, plural, venueName } from '../lib/groups'
+import { dateParts, sortByDate, spanDays } from '../lib/dates'
+import { groupByMonth, groupByVenue, venueName } from '../lib/groups'
+import { fmtWhen, infoTypeOf, noun } from '../lib/infoTypes'
 import { createAutoFit } from '../lib/autofit'
 
 // Band-profile style: black header strip, a giant record whose rim carries every date
@@ -25,6 +26,8 @@ export default function Disc(props: TemplateProps) {
   const venues = () => groupByVenue(concerts(), props.doc.venue)
   const months = () => groupByMonth(concerts())
   const sliceColors = () => [p().accent, p().fg, p().accent2, '#e7c9a9', '#5a5a5a', '#7a1020', '#b5b5b5', '#a8743f', '#2f2f2f']
+  const cfg = () => infoTypeOf(props.doc)
+  const byGroupTitle = () => (cfg().group ? `${cfg().item.many} por ${cfg().group!.one}` : '')
   const headline = () => (isCycle() ? props.doc.title : concerts()[0]?.artist || props.doc.title)
 
   const Header = () => (
@@ -101,7 +104,7 @@ export default function Disc(props: TemplateProps) {
             return (
               <g>
                 <text x={rim()[0]} y={rim()[1] + 7} text-anchor="middle" font-family={FONT.sans} font-weight="600" font-size="20" fill="#ffffff">
-                  {dotDate(it.c.date)}
+                  {fmtWhen(props.doc, it.c, it.i)}
                 </text>
                 <line x1={out1()[0]} y1={out1()[1]} x2={out2()[0]} y2={out2()[1]} stroke={p().accent} stroke-width="3" />
                 <circle cx={out1()[0]} cy={out1()[1]} r="5" fill={p().accent} />
@@ -139,7 +142,8 @@ export default function Disc(props: TemplateProps) {
   }
 
   const Donut = () => {
-    const total = () => concerts().length || 1
+    // Only entries that belong to a group count, so slices always add up to 100%.
+    const total = () => venues().reduce((sum, v) => sum + v.items.length, 0) || 1
     const arcs = () => {
       let acc = 0
       return venues().map((v, i) => {
@@ -187,9 +191,9 @@ export default function Disc(props: TemplateProps) {
     <div class="flex flex-col" style={{ gap: px(6) }}>
       <For
         each={[
-          [String(concerts().length), plural(concerts().length, 'concierto')],
-          [String(venues().length), plural(venues().length, 'sala')],
-          ...(spanDays(concerts().map((c) => c.date)) > 1 ? [[String(spanDays(concerts().map((c) => c.date))), 'días']] : []),
+          [String(concerts().length), noun(cfg().item, concerts().length)],
+          ...(cfg().group ? [[String(venues().length), noun(cfg().group!, venues().length)]] : []),
+          ...(cfg().dateMode === 'day' && spanDays(concerts().map((c) => c.date)) > 1 ? [[String(spanDays(concerts().map((c) => c.date))), 'días']] : []),
           ...(props.doc.highlight.big ? [[props.doc.highlight.big, props.doc.highlight.text]] : []),
         ]}
       >
@@ -270,12 +274,16 @@ export default function Disc(props: TemplateProps) {
                 <SectionTitle>En cifras</SectionTitle>
                 <Figures />
               </div>
-              <div>
-                <SectionTitle>Conciertos por sala</SectionTitle>
-                <Donut />
-              </div>
+              <Show when={cfg().group}>
+                <div>
+                  <SectionTitle>{byGroupTitle().charAt(0).toUpperCase() + byGroupTitle().slice(1)}</SectionTitle>
+                  <Donut />
+                </div>
+              </Show>
             </div>
-            <Timeline />
+            <Show when={cfg().dateMode === 'day'}>
+              <Timeline />
+            </Show>
             <Footer />
           </div>
         }
@@ -287,10 +295,12 @@ export default function Disc(props: TemplateProps) {
             </div>
           </div>
           <div class="flex min-h-0 flex-col justify-center" style={{ gap: px(18) }}>
-            <div>
-              <SectionTitle>Conciertos por sala</SectionTitle>
-              <Donut />
-            </div>
+            <Show when={cfg().group}>
+              <div>
+                <SectionTitle>{byGroupTitle().charAt(0).toUpperCase() + byGroupTitle().slice(1)}</SectionTitle>
+                <Donut />
+              </div>
+            </Show>
             <div>
               <SectionTitle>En cifras</SectionTitle>
               <Figures />
