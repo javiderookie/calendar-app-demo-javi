@@ -166,6 +166,34 @@ export default function Editor() {
           {text('footer', 'Pie / firma')}
         </div>
         {text('credit', 'Crédito (arriba)')}
+        <Field label={`Fotos del grupo o artista (hasta 3) · ${doc.photos.length}/3`}>
+          <div class="flex items-center gap-2">
+            <For each={doc.photos}>
+              {(src, i) => (
+                <button type="button" title="Quitar" class="relative" onClick={() => setDoc('photos', (ph) => ph.filter((_, j) => j !== i()))}>
+                  <img src={src} alt="" class="h-10 w-10 rounded object-cover" />
+                  <span class="absolute -right-1 -top-1 rounded-full bg-red-600 px-1 text-[10px] leading-4 text-white">×</span>
+                </button>
+              )}
+            </For>
+            <Show when={doc.photos.length < 3}>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                class="min-w-0 flex-1 text-xs"
+                onChange={async (e) => {
+                  // currentTarget is gone after the await (and the input unmounts at 3 photos).
+                  const input = e.currentTarget
+                  const files = [...(input.files ?? [])].slice(0, 3 - doc.photos.length)
+                  input.value = ''
+                  const urls = await Promise.all(files.map((f) => fileToDataUrl(f, 700)))
+                  setDoc('photos', (ph) => [...ph, ...urls].slice(0, 3))
+                }}
+              />
+            </Show>
+          </div>
+        </Field>
         <Field label="Logo (PNG con fondo transparente, opcional)">
           <div class="flex items-center gap-3">
             <Show when={doc.logo}>

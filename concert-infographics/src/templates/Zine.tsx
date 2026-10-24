@@ -279,6 +279,37 @@ export default function Zine(props: TemplateProps) {
     </Show>
   )
 
+  // Band photos as photocopied cut-outs: grayscale, hard contrast, taped and tilted.
+  const Photos = () => (
+    <Show when={props.doc.photos?.length}>
+      <div class="flex items-center justify-center" style={{ padding: `${px(10)} ${px(8)}` }}>
+        <For each={props.doc.photos.slice(0, 3)}>
+          {(src, i) => (
+            <div
+              class="relative min-w-0"
+              style={{
+                // Share the column width; overlap is a fixed fraction so three still fit.
+                flex: '1 1 0',
+                'max-width': px(props.doc.photos.length === 1 ? 380 : 240),
+                'margin-left': i() ? '-6%' : '0',
+                transform: `rotate(${[-4, 3, -2][i()]}deg)`,
+                'z-index': i() === 1 ? 2 : 1,
+              }}
+            >
+              <div class="absolute left-1/2" style={{ top: px(-10), width: px(70), height: px(20), 'margin-left': px(-35), background: '#f6e600cc', transform: 'rotate(3deg)', 'z-index': 3 }} />
+              <img
+                src={src}
+                alt=""
+                class="block aspect-[4/5] w-full object-cover"
+                style={{ filter: 'grayscale(1) contrast(1.6) brightness(1.05)', border: `${px(6)} solid #f4efe6`, 'box-shadow': `${px(6)} ${px(6)} 0 ${p().accent}` }}
+              />
+            </div>
+          )}
+        </For>
+      </div>
+    </Show>
+  )
+
   const Quote = () => (
     <Show when={props.doc.intro}>
       <p style={{ 'font-family': FONT.marker, 'font-size': px(34), color: p().accent, 'line-height': 1.25, transform: 'rotate(-2deg)' }}>“{props.doc.intro}”</p>
@@ -443,6 +474,7 @@ export default function Zine(props: TemplateProps) {
                 <Gutter />
                 <div data-fit class="flex min-h-0 flex-col justify-between overflow-hidden" style={{ gap: px(22) }}>
                   <Figures />
+                  <Photos />
                   <Quote />
                   <Title />
                 </div>
@@ -458,6 +490,7 @@ export default function Zine(props: TemplateProps) {
             </div>
             <div data-fit class="flex min-h-0 flex-col justify-center overflow-hidden" style={{ gap: px(20) }}>
               <Figures />
+              <Photos />
               <Bars />
             </div>
             <Gutter />
