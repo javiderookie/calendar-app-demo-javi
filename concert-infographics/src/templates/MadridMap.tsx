@@ -1,4 +1,5 @@
 import { createSignal, For, onCleanup, onMount, Show } from 'solid-js'
+import { uid } from '../lib/uid'
 import type { TemplateProps } from '.'
 import type { Concert } from '../types'
 import { sortByDate, spanDays } from '../lib/dates'
@@ -230,16 +231,17 @@ export default function MadridMap(props: TemplateProps) {
   )
 
   const MapSvg = () => {
+    const madBlocksId = uid('mad-blocks')
     const v = () => view()
     const strokeKm = (km: number) => Math.max(1, km * v().k)
     return (
       <svg class="absolute inset-0 h-full w-full" viewBox={`0 0 ${v().w} ${v().h}`}>
         <defs>
-          <pattern id="mad-blocks" width={v().k * 0.18} height={v().k * 0.18} patternUnits="userSpaceOnUse">
+          <pattern id={madBlocksId} width={v().k * 0.18} height={v().k * 0.18} patternUnits="userSpaceOnUse">
             <rect x={v().k * 0.02} y={v().k * 0.02} width={v().k * 0.13} height={v().k * 0.13} rx={v().k * 0.02} fill={p().fg} fill-opacity="0.06" />
           </pattern>
         </defs>
-        <rect width={v().w} height={v().h} fill="url(#mad-blocks)" />
+        <rect width={v().w} height={v().h} fill={`url(#${madBlocksId})`} />
         <For each={PARKS}>{(park) => <path d={path(park, true)} fill="#b9d39a" fill-opacity="0.9" />}</For>
         <path d={path(RIVER)} fill="none" stroke="#9cc3db" stroke-width={strokeKm(0.11)} stroke-linecap="round" stroke-linejoin="round" />
         <For each={AVENUES}>

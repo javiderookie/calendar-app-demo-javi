@@ -1,4 +1,5 @@
 import { For, Show } from 'solid-js'
+import { uid } from '../lib/uid'
 import type { TemplateProps } from '.'
 import { dateParts, sortByDate, spanDays } from '../lib/dates'
 import { groupByMonth, groupByVenue, venueName } from '../lib/groups'
@@ -55,6 +56,7 @@ export default function Disc(props: TemplateProps) {
 
   // The record and its callouts live in one SVG so they scale together.
   const Record = () => {
+    const discLabelId = uid('disc-label')
     const W = 1000
     const H = 860
     const cx = W / 2
@@ -75,7 +77,7 @@ export default function Disc(props: TemplateProps) {
     return (
       <svg viewBox={`0 0 ${W} ${H}`} class="h-full w-full" preserveAspectRatio="xMidYMid meet">
         <defs>
-          <clipPath id="disc-label">
+          <clipPath id={discLabelId}>
             <circle cx={cx} cy={cy} r={R * 0.42} />
           </clipPath>
         </defs>
@@ -84,7 +86,7 @@ export default function Disc(props: TemplateProps) {
           {(f) => <circle cx={cx} cy={cy} r={R * f} fill="none" stroke="#ffffff" stroke-opacity="0.09" stroke-width="2" />}
         </For>
         <path d={`M ${cx - R * 0.8} ${cy - R * 0.55} A ${R} ${R} 0 0 1 ${cx + R * 0.2} ${cy - R * 0.95}`} fill="none" stroke="#fff" stroke-opacity="0.12" stroke-width="18" />
-        <g clip-path="url(#disc-label)">
+        <g clip-path={`url(#${discLabelId})`}>
           <circle cx={cx} cy={cy} r={R * 0.42} fill={p().accent} />
           <rect x={cx - R} y={cy - 16} width={R * 2} height={32} fill={p().bg} transform={`rotate(-28 ${cx} ${cy})`} />
           <rect x={cx - R} y={cy + 34} width={R * 2} height={12} fill={p().bg} transform={`rotate(-28 ${cx} ${cy})`} />

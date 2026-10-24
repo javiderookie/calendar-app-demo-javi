@@ -1,4 +1,5 @@
 import { For, Index, Show } from 'solid-js'
+import { uid } from '../lib/uid'
 import type { JSX } from 'solid-js'
 import type { TemplateProps } from '.'
 import type { Concert, Palette } from '../types'
@@ -254,10 +255,11 @@ function Scene(props: { concerts: Concert[]; p: Palette; venue: string; w: numbe
 
 /** Seigaiha wave pattern for the background. */
 function Waves(props: { color: string; size: number }) {
+  const isoWavesId = uid('iso-waves')
   return (
     <svg class="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true">
       <defs>
-        <pattern id="iso-waves" width={props.size} height={props.size / 2} patternUnits="userSpaceOnUse">
+        <pattern id={isoWavesId} width={props.size} height={props.size / 2} patternUnits="userSpaceOnUse">
           <For each={[0.5, 0.36, 0.22]}>
             {(r) => (
               <>
@@ -269,7 +271,7 @@ function Waves(props: { color: string; size: number }) {
           </For>
         </pattern>
       </defs>
-      <rect width="100%" height="100%" fill="url(#iso-waves)" opacity="0.08" />
+      <rect width="100%" height="100%" fill={`url(#${isoWavesId})`} opacity="0.08" />
     </svg>
   )
 }

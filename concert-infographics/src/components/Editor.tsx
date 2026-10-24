@@ -8,6 +8,7 @@ import { findCovers } from '../lib/covers'
 import { createSignal } from 'solid-js'
 import type { Concert, Infographic, Kind } from '../types'
 import { Field, inputClass } from './Field'
+import TemplatePicker from './TemplatePicker'
 
 type TextKey = 'title' | 'subtitle' | 'banner' | 'venue' | 'ticketsUrl' | 'footer' | 'credit'
 type ConcertKey = Exclude<keyof Concert, 'id' | 'image' | 'pin'>
@@ -124,16 +125,6 @@ export default function Editor() {
         </div>
         </Show>
         <div class="grid grid-cols-2 gap-3">
-          <Field label="Plantilla">
-            <select class={inputClass} value={doc.templateId} onChange={(e) => chooseTemplate(e.currentTarget.value)}>
-              <optgroup label={`Recomendadas · ${cfg().label}`}>
-                <For each={recommended()}>{(t) => <option value={t.id}>{t.label}</option>}</For>
-              </optgroup>
-              <optgroup label="Otras">
-                <For each={others()}>{(t) => <option value={t.id}>{t.label}</option>}</For>
-              </optgroup>
-            </select>
-          </Field>
           <Field label="Formato">
             <select
               class={inputClass}
@@ -143,6 +134,10 @@ export default function Editor() {
               <For each={FORMATS}>{(f) => <option value={f.id}>{f.label}</option>}</For>
             </select>
           </Field>
+        </div>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs font-semibold uppercase tracking-wide text-neutral-500">Plantilla · elige una</span>
+          <TemplatePicker recommended={recommended()} others={others()} current={doc.templateId} onPick={chooseTemplate} />
         </div>
         <div class="grid grid-cols-4 gap-3">
           <For each={[['bg', 'Fondo'], ['fg', 'Tinta'], ['accent', 'Acento'], ['accent2', 'Acento 2']] as const}>

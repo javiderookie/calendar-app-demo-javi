@@ -1,4 +1,5 @@
 import { For, Show } from 'solid-js'
+import { uid } from '../lib/uid'
 import type { TemplateProps } from '.'
 import type { Concert } from '../types'
 import { sortByDate, spanDays } from '../lib/dates'
@@ -17,10 +18,8 @@ const HONEY = '#f7c936'
 const NAVY = '#1d2a4d'
 const VENUE_COLORS = ['#e8524a', '#3d6bb3', '#f29a3d', '#5aa9e6', '#58b85c', '#9b6bd1', '#e8743b', '#2e8f88', '#d94f8c']
 
-let uid = 0
-
 function Bee(props: { size: number; flip?: boolean; tilt?: number }) {
-  const id = `bee-${++uid}`
+  const id = uid('bee')
   return (
     <svg
       viewBox="0 0 64 52"
@@ -78,6 +77,7 @@ function Cloud(props: { w: number; style: Record<string, string> }) {
 }
 
 function Honeycomb(props: { r: number; color: string }) {
+  const panalHexId = uid('panal-hex')
   const w = () => Math.sqrt(3) * props.r
   const hex = (cx: number, cy: number) =>
     [-90, -30, 30, 90, 150, 210]
@@ -89,13 +89,13 @@ function Honeycomb(props: { r: number; color: string }) {
   return (
     <svg class="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true">
       <defs>
-        <pattern id="panal-hex" width={w()} height={props.r * 3} patternUnits="userSpaceOnUse">
+        <pattern id={panalHexId} width={w()} height={props.r * 3} patternUnits="userSpaceOnUse">
           <polygon points={hex(w() / 2, props.r)} fill="none" stroke={props.color} stroke-width="2" />
           <polygon points={hex(0, props.r * 2.5)} fill="none" stroke={props.color} stroke-width="2" />
           <polygon points={hex(w(), props.r * 2.5)} fill="none" stroke={props.color} stroke-width="2" />
         </pattern>
       </defs>
-      <rect width="100%" height="100%" fill="url(#panal-hex)" />
+      <rect width="100%" height="100%" fill={`url(#${panalHexId})`} />
     </svg>
   )
 }
