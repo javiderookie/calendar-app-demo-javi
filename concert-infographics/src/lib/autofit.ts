@@ -10,7 +10,8 @@ export function createAutoFit(frame: () => HTMLElement | undefined, track: () =>
 
   const overflows = () =>
     Array.from(frame()?.querySelectorAll<HTMLElement>('[data-fit]') ?? []).some(
-      (el) => el.scrollHeight > el.clientHeight + 1,
+      // 2px of slack absorbs sub-pixel rounding between scrollHeight and clientHeight.
+      (el) => el.scrollHeight > el.clientHeight + 2,
     )
 
   // Binary search for the largest fit factor that leaves nothing clipped.
