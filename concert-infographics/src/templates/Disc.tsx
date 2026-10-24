@@ -36,9 +36,16 @@ export default function Disc(props: TemplateProps) {
         <Show when={props.doc.subtitle}>
           <p style={{ 'font-family': FONT.sans, 'font-weight': 600, 'font-size': px(30), color: p().bg, 'line-height': 1 }}>{props.doc.subtitle}</p>
         </Show>
-        <h1 style={{ 'font-family': FONT.heavy, 'font-size': px(headline().length > 12 ? 84 : 116), color: p().bg, 'line-height': 1, 'white-space': 'nowrap' }}>
-          {headline()}
-        </h1>
+        <Show
+          when={props.doc.logo}
+          fallback={
+            <h1 style={{ 'font-family': FONT.heavy, 'font-size': px(headline().length > 12 ? 84 : 116), color: p().bg, 'line-height': 1, 'white-space': 'nowrap' }}>
+              {headline()}
+            </h1>
+          }
+        >
+          <img src={props.doc.logo} alt={headline()} style={{ height: px(110), 'max-width': px(560), 'object-fit': 'contain', 'object-position': 'left' }} />
+        </Show>
       </div>
       <Show when={props.doc.intro}>
         <p style={{ 'font-family': FONT.sans, 'font-size': px(21), color: p().bg, opacity: 0.9, 'line-height': 1.35 }}>{props.doc.intro}</p>
@@ -52,7 +59,8 @@ export default function Disc(props: TemplateProps) {
     const H = 860
     const cx = W / 2
     const cy = H / 2
-    const R = 270
+    // Smaller record when covers sit at the end of the leader lines, to leave room for labels.
+    const R = concerts().some((c) => c.image) ? 235 : 270
     const n = () => Math.max(concerts().length, 1)
     const items = () =>
       concerts().map((c, i) => {
@@ -62,7 +70,8 @@ export default function Disc(props: TemplateProps) {
         const side: 'start' | 'middle' | 'end' = Math.abs(cos) < 0.28 ? 'middle' : cos > 0 ? 'start' : 'end'
         return { c, i, cos, sin, side }
       })
-    const fitLen = (text: string, size: number, max: number) => (text.length * size * 0.46 > max ? max : undefined)
+    // Generous width estimate (Anton runs wide in caps) so labels compress before they hit the edge.
+    const fitLen = (text: string, size: number, max: number, k = 0.52) => (text.length * size * k > max ? max : undefined)
     return (
       <svg viewBox={`0 0 ${W} ${H}`} class="h-full w-full" preserveAspectRatio="xMidYMid meet">
         <defs>
@@ -80,7 +89,11 @@ export default function Disc(props: TemplateProps) {
           <rect x={cx - R} y={cy - 16} width={R * 2} height={32} fill={p().bg} transform={`rotate(-28 ${cx} ${cy})`} />
           <rect x={cx - R} y={cy + 34} width={R * 2} height={12} fill={p().bg} transform={`rotate(-28 ${cx} ${cy})`} />
         </g>
+        <Show when={props.doc.logo}>
+          <image href={props.doc.logo} x={cx - R * 0.3} y={cy - R * 0.36} width={R * 0.6} height={R * 0.26} preserveAspectRatio="xMidYMid meet" />
+        </Show>
         <text
+          visibility={props.doc.logo ? 'hidden' : 'visible'}
           x={cx}
           y={cy - 34}
           text-anchor="middle"
@@ -97,9 +110,14 @@ export default function Disc(props: TemplateProps) {
             const rim = () => [cx + it.cos * R * 0.86, cy + it.sin * R * 0.86]
             const out1 = () => [cx + it.cos * (R + 8), cy + it.sin * (R + 8)]
             const out2 = () => [cx + it.cos * (R + 44), cy + it.sin * (R + 44)]
-            const tx = () => out2()[0] + (it.side === 'start' ? 10 : it.side === 'end' ? -10 : 0)
-            const ty = () => out2()[1] + (it.side === 'middle' ? (it.sin < 0 ? -40 : 30) : -6)
-            const room = () => (it.side === 'middle' ? 320 : Math.max(120, it.side === 'start' ? W - tx() - 6 : tx() - 6))
+            // A cover, when present, sits at the end of the leader line and pushes the text outwards.
+            const cov = () => (it.c.image ? Math.min(78, 520 / Math.max(n(), 1) + 22) : 0)
+            const gapX = () => (it.c.image && it.side !== 'middle' ? cov() + 10 : 0)
+            const tx = () => out2()[0] + (it.side === 'start' ? 10 + gapX() : it.side === 'end' ? -10 - gapX() : 0)
+            const ty = () => out2()[1] + (it.side === 'middle' ? (it.sin < 0 ? -40 - (it.c.image ? cov() + 8 : 0) : 30 + (it.c.image ? cov() + 8 : 0)) : -6)
+            const coverX = () => (it.side === 'start' ? out2()[0] + 10 : it.side === 'end' ? out2()[0] - 10 - cov() : out2()[0] - cov() / 2)
+            const coverY = () => (it.side === 'middle' ? (it.sin < 0 ? out2()[1] - cov() - 6 : out2()[1] + 6) : out2()[1] - cov() / 2)
+            const room = () => (it.side === 'middle' ? 320 : Math.max(60, it.side === 'start' ? W - tx() - 6 : tx() - 6))
             const meta = () => [venueName(it.c, props.doc.venue), it.c.time && `${it.c.time} h`].filter(Boolean).join(' · ')
             return (
               <g>
@@ -108,6 +126,10 @@ export default function Disc(props: TemplateProps) {
                 </text>
                 <line x1={out1()[0]} y1={out1()[1]} x2={out2()[0]} y2={out2()[1]} stroke={p().accent} stroke-width="3" />
                 <circle cx={out1()[0]} cy={out1()[1]} r="5" fill={p().accent} />
+                <Show when={it.c.image}>
+                  <rect x={coverX() - 3} y={coverY() - 3} width={cov() + 6} height={cov() + 6} fill={p().fg} />
+                  <image href={it.c.image} x={coverX()} y={coverY()} width={cov()} height={cov()} preserveAspectRatio="xMidYMid slice" />
+                </Show>
                 <text
                   x={tx()}
                   y={ty()}
@@ -128,7 +150,7 @@ export default function Disc(props: TemplateProps) {
                   font-size="21"
                   fill={p().fg}
                   fill-opacity="0.75"
-                  textLength={fitLen(meta(), 21, room())}
+                  textLength={fitLen(meta(), 21, room(), 0.42)}
                   lengthAdjust="spacingAndGlyphs"
                 >
                   {meta()}

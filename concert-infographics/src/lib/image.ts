@@ -1,5 +1,6 @@
-// Downscale an uploaded image to a square-ish JPEG data URL so drafts fit in localStorage.
-export function fileToDataUrl(file: File, maxSize = 480): Promise<string> {
+// Downscale an uploaded image to a data URL so drafts fit in localStorage.
+// JPEG by default; PNG keeps transparency (logos).
+export function fileToDataUrl(file: Blob, maxSize = 480, type: 'image/jpeg' | 'image/png' = 'image/jpeg'): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image()
     const url = URL.createObjectURL(file)
@@ -10,7 +11,7 @@ export function fileToDataUrl(file: File, maxSize = 480): Promise<string> {
       canvas.height = Math.round(img.height * ratio)
       canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height)
       URL.revokeObjectURL(url)
-      resolve(canvas.toDataURL('image/jpeg', 0.85))
+      resolve(canvas.toDataURL(type, 0.85))
     }
     img.onerror = () => {
       URL.revokeObjectURL(url)

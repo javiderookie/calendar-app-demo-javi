@@ -65,7 +65,7 @@ export default function Chronicle(props: TemplateProps) {
       <div class="flex items-stretch">
         <div class="flex flex-col justify-center text-right" style={{ 'padding-right': px(18), 'border-right': `${px(8)} solid ${p().accent}` }}>
           <p class="uppercase" style={{ 'font-family': FONT.heavy, 'font-size': px(46), color: p().fg, 'line-height': 1 }}>
-            {titleParts()[0]}
+            {props.doc.logo ? '' : titleParts()[0]}
           </p>
           <Show when={props.doc.subtitle && titleParts()[0] !== props.doc.subtitle}>
             <p class="uppercase" style={{ 'font-family': FONT.sans, 'font-size': px(22), color: p().fg, opacity: 0.7 }}>
@@ -74,9 +74,16 @@ export default function Chronicle(props: TemplateProps) {
           </Show>
         </div>
         <div class="min-w-0 flex-1" style={{ background: p().accent, padding: `${px(4)} ${px(24)}` }}>
-          <h1 class="truncate uppercase" style={{ 'font-family': FONT.heavy, 'font-size': px(titleParts()[1].length > 9 ? 110 : 150), color: '#fff', 'line-height': 1.05 }}>
-            {titleParts()[1]}
-          </h1>
+          <Show
+            when={props.doc.logo}
+            fallback={
+              <h1 class="truncate uppercase" style={{ 'font-family': FONT.heavy, 'font-size': px(titleParts()[1].length > 9 ? 110 : 150), color: '#fff', 'line-height': 1.05 }}>
+                {titleParts()[1]}
+              </h1>
+            }
+          >
+            <img src={props.doc.logo} alt={headline()} style={{ height: px(150), 'max-width': '100%', 'object-fit': 'contain', 'object-position': 'left' }} />
+          </Show>
         </div>
       </div>
     </header>

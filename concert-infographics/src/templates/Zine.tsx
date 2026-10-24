@@ -226,7 +226,7 @@ export default function Zine(props: TemplateProps) {
                   </div>
                 }
               >
-                <img src={c.image} alt="" class="shrink-0 object-cover" style={{ width: px(54), height: px(54), filter: 'grayscale(1) contrast(1.3)' }} />
+                <img src={c.image} alt="" class="shrink-0 object-cover" style={{ width: px(54), height: px(54), filter: cfg().dateMode === 'day' ? 'grayscale(1) contrast(1.3)' : 'none', border: `${px(2)} solid ${p().fg}` }} />
               </Show>
               <div class="min-w-0">
                 <p class="truncate" style={{ 'font-family': FONT.body, 'font-weight': 800, 'font-size': px(22), color: p().fg, 'line-height': 1.15 }}>
@@ -292,7 +292,9 @@ export default function Zine(props: TemplateProps) {
           {props.doc.banner}
         </p>
       </Show>
-      <Ransom text={headline()} size={ransomSize() * s()} colors={colors()} />
+      <Show when={props.doc.logo} fallback={<Ransom text={headline()} size={ransomSize() * s()} colors={colors()} />}>
+        <img src={props.doc.logo} alt={headline()} style={{ 'max-width': '100%', 'max-height': px(260), 'object-fit': 'contain' }} />
+      </Show>
       <Show when={props.doc.subtitle}>
         <p style={{ 'font-family': FONT.marker, 'font-size': px(36), color: p().accent2 }}>{props.doc.subtitle}</p>
       </Show>
@@ -319,24 +321,66 @@ export default function Zine(props: TemplateProps) {
     </div>
   )
 
+  // Covers get as wide as the band allows, up to 150px.
+  const coverSize = () => Math.min(150, 960 / Math.max(items().length, 1)) * s()
+  const hasAnyCover = () => items().some((c) => c.image)
+
+  const CoverCard = (cp: { src: string; label: string; size: number; hot: boolean; tilt: number }) => (
+    <div class="relative" style={{ width: `${cp.size}px`, transform: `rotate(${cp.tilt * 2.5}deg)` }}>
+      <div
+        class="absolute left-1/2"
+        style={{ top: px(-8), width: px(46), height: px(16), 'margin-left': px(-23), background: '#f4efe6cc', transform: 'rotate(-4deg)', 'z-index': 2 }}
+      />
+      <img
+        src={cp.src}
+        alt=""
+        class="block aspect-square w-full object-cover"
+        style={{ border: `${px(4)} solid #111`, 'box-shadow': `${px(4)} ${px(4)} 0 #111` }}
+      />
+      <span
+        class="absolute"
+        style={{
+          right: px(-8),
+          bottom: px(-10),
+          'font-family': FONT.marker,
+          'font-size': px(Math.max(18, cp.size / s() / 4.5)),
+          background: cp.hot ? p().accent : '#ffffff',
+          color: '#111',
+          padding: `0 ${px(8)}`,
+          border: `${px(3)} solid #111`,
+          transform: 'rotate(-6deg)',
+        }}
+      >
+        {cp.label}
+      </span>
+    </div>
+  )
+
   const Timeline = () => (
     <section class="relative" style={{ padding: `${px(14)} 0 ${px(30)}` }}>
       <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="absolute h-full" style={{ left: px(-44), right: px(-44), top: 0, width: `calc(100% + ${px(88)})` }}>
         <polygon points={BAND} fill={p().accent2} />
       </svg>
-      <div class="absolute left-0 right-0" style={{ top: px(54), height: px(5), background: '#111' }} />
+      <div class="absolute left-0 right-0" style={{ top: hasAnyCover() ? `calc(${px(14)} + ${coverSize() / 2}px)` : px(54), height: px(5), background: '#111' }} />
       <div class="relative flex justify-between" style={{ gap: px(4) }}>
         <Index each={items()}>
           {(c) => (
-            <div class="flex min-w-0 flex-1 flex-col items-center text-center" style={{ gap: px(4) }}>
-              <Pick
-                size={Math.min(92, 900 / Math.max(items().length, 1)) * s()}
-                fill={upcoming(c()) ? p().accent : '#ffffff'}
-                stroke="#111"
-                textColor="#111"
+            <div class="flex min-w-0 flex-1 flex-col items-center text-center" style={{ gap: px(hasAnyCover() ? 14 : 4) }}>
+              <Show
+                when={c().image}
+                fallback={
+                  <Pick
+                    size={Math.min(92, 900 / Math.max(items().length, 1)) * s()}
+                    fill={upcoming(c()) ? p().accent : '#ffffff'}
+                    stroke="#111"
+                    textColor="#111"
+                  >
+                    {when(c())}
+                  </Pick>
+                }
               >
-                {when(c())}
-              </Pick>
+                <CoverCard src={c().image} label={when(c())} size={coverSize()} hot={upcoming(c())} tilt={(items().indexOf(c()) % 3) - 1} />
+              </Show>
               <span
                 class="w-full overflow-hidden"
                 style={{

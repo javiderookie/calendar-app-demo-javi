@@ -27,6 +27,8 @@ export interface Infographic {
   intro: string
   highlight: { big: string; text: string }
   mapImage: string
+  /** Band/festival logo as a PNG data URL (keeps transparency). */
+  logo: string
   formatId: FormatId
   templateId: string
   palette: Palette

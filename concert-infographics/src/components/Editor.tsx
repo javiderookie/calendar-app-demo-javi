@@ -4,6 +4,8 @@ import { INFO_TYPES, infoTypeOf, type InfoType } from '../lib/infoTypes'
 import { FORMATS } from '../lib/formats'
 import { TEMPLATES, templateById } from '../templates'
 import { fileToDataUrl } from '../lib/image'
+import { findCovers } from '../lib/covers'
+import { createSignal } from 'solid-js'
 import type { Concert, Infographic, Kind } from '../types'
 import { Field, inputClass } from './Field'
 
@@ -39,6 +41,26 @@ export default function Editor() {
   }
 
   const cfg = () => infoTypeOf(doc)
+  const hasCovers = () => doc.infoType === 'discography' || doc.infoType === 'album'
+  const [coverStatus, setCoverStatus] = createSignal('')
+
+  const searchCovers = async () => {
+    if (!doc.title.trim()) return setCoverStatus('Escribe primero el grupo o artista en la cabecera.')
+    const artist = doc.infoType === 'album' ? doc.subtitle.split('·')[0].trim() || doc.title : doc.title
+    const entries =
+      doc.infoType === 'album'
+        ? [{ id: doc.concerts[0]?.id ?? '', title: doc.title }]
+        : doc.concerts.filter((c) => !c.image).map((c) => ({ id: c.id, title: c.artist }))
+    setCoverStatus('Buscando portadas…')
+    try {
+      const found = await findCovers(artist, entries)
+      for (const [id, image] of Object.entries(found)) setDoc('concerts', (c) => c.id === id, 'image', image)
+      const n = Object.keys(found).length
+      setCoverStatus(n ? `Encontradas ${n} de ${entries.length}. Sube a mano las que falten.` : 'No he encontrado portadas; súbelas a mano.')
+    } catch (err) {
+      setCoverStatus(`No se pudo buscar (${(err as Error).message}). Súbelas a mano.`)
+    }
+  }
 
   const chooseType = (type: InfoType) => {
     const next = INFO_TYPES.find((t) => t.id === type)!
@@ -149,6 +171,27 @@ export default function Editor() {
           {text('footer', 'Pie / firma')}
         </div>
         {text('credit', 'Crédito (arriba)')}
+        <Field label="Logo (PNG con fondo transparente, opcional)">
+          <div class="flex items-center gap-3">
+            <Show when={doc.logo}>
+              <img src={doc.logo} alt="" class="h-10 max-w-24 rounded bg-neutral-800 object-contain p-1" />
+            </Show>
+            <input
+              type="file"
+              accept="image/*"
+              class="min-w-0 flex-1 text-xs"
+              onChange={async (e) => {
+                const file = e.currentTarget.files?.[0]
+                if (file) setDoc('logo', await fileToDataUrl(file, 900, 'image/png'))
+              }}
+            />
+            <Show when={doc.logo}>
+              <button type="button" class="text-xs text-red-600" onClick={() => setDoc('logo', '')}>
+                Quitar
+              </button>
+            </Show>
+          </div>
+        </Field>
       </section>
 
       <Show when={doc.templateId === 'map'}>
@@ -203,6 +246,11 @@ export default function Editor() {
       <section class="flex flex-col gap-3">
         <div class="flex items-center justify-between">
           <h2 class="text-sm font-extrabold uppercase">4 · {doc.kind === 'cycle' ? cfg().listTitle : 'Concierto'}</h2>
+          <Show when={hasCovers()}>
+            <button type="button" class="rounded-md border border-neutral-300 bg-white px-3 py-1 text-sm font-semibold" onClick={searchCovers}>
+              Buscar portadas
+            </button>
+          </Show>
           <Show when={doc.kind === 'cycle'}>
             <button
               type="button"
@@ -213,6 +261,9 @@ export default function Editor() {
             </button>
           </Show>
         </div>
+        <Show when={hasCovers() && coverStatus()}>
+          <p class="text-xs text-neutral-600">{coverStatus()}</p>
+        </Show>
         <For each={doc.kind === 'cycle' ? doc.concerts : doc.concerts.slice(0, 1)}>
           {(c, i) => (
             <div class="grid grid-cols-2 gap-3 rounded-lg border border-neutral-200 bg-white p-3">
@@ -225,7 +276,7 @@ export default function Editor() {
               <Show when={doc.templateId === 'madrid'}>
                 <div class="col-span-2">{concertField(i(), 'coords', 'Coordenadas (lat, lon) si la sala no se reconoce')}</div>
               </Show>
-              <Field label="Foto / portada (opcional)" class="col-span-2">
+              <Field label={hasCovers() ? 'Portada' : 'Foto (opcional)'} class="col-span-2">
                 <div class="flex items-center gap-3">
                   <Show when={c.image}>
                     <img src={c.image} alt="" class="h-10 w-10 rounded object-cover" />
